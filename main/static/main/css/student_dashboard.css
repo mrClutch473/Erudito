@@ -1,0 +1,516 @@
+/* ============================
+   ERUDITO — STUDENT DASHBOARD
+   ============================ */
+
+/* ── Статистика: 4 колонки ────────────────────── */
+.tc-stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.tsc-icon {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.tsc-label-with-unit {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.tsc-unit {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  font-family: var(--font-serif);
+}
+
+/* ── Секция ───────────────────────────────────── */
+.sd-section {
+  margin-bottom: 64px;
+}
+
+.sd-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.sd-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white-dim);
+  background: var(--white-faint);
+  border: 1px solid var(--border-dim);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ══════════════════════════════
+   КАРТОЧКИ АКТИВНЫХ КУРСОВ
+══════════════════════════════ */
+
+.sd-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.sd-course-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.sd-course-card:hover {
+  border-color: var(--border);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Превью с прогресс-баром поверх */
+.sd-thumb {
+  height: 150px;
+  background: linear-gradient(135deg, var(--bg-3), #1a1a2e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.sd-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Полоска прогресса внизу превью */
+.sd-thumb-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+}
+
+.sd-thumb-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sd-thumb-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+
+.sd-thumb-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+/* Тело */
+.sd-card-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sd-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sd-level {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.sd-level--beginner {
+  color: #4ade80;
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.25);
+}
+
+.sd-level--intermediate {
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid var(--border);
+}
+
+.sd-level--advanced {
+  color: #f87171;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.sd-lessons-count {
+  font-size: 11px;
+  color: var(--white-dim);
+  letter-spacing: 0.05em;
+}
+
+.sd-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+.sd-card-desc {
+  font-size: 13px;
+  color: var(--white-dim);
+  line-height: 1.6;
+}
+
+/* Прогресс */
+.sd-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.sd-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--white-dim);
+}
+
+.sd-progress-pct {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.sd-progress-bar {
+  height: 5px;
+  background: var(--bg-3);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.sd-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 5px;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sd-progress-sub {
+  font-size: 11px;
+  color: var(--white-dim);
+  opacity: 0.6;
+}
+
+/* Учитель */
+.sd-teacher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--white-dim);
+  padding-top: 12px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.sd-teacher-avatar {
+  width: 24px;
+  height: 24px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #0a0a0f;
+  flex-shrink: 0;
+}
+
+/* Действия */
+.sd-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.sd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sd-btn--primary {
+  flex: 1;
+  background: var(--gold);
+  color: #0a0a0f;
+}
+
+.sd-btn--primary:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(201,168,76,0.3);
+}
+
+.sd-btn--ghost {
+  background: var(--white-faint);
+  border: 1px solid var(--border-dim);
+  color: var(--white-dim);
+}
+
+.sd-btn--ghost:hover {
+  color: #f87171;
+  border-color: rgba(239,68,68,0.3);
+  background: rgba(239,68,68,0.08);
+}
+
+.sd-btn--sm {
+  font-size: 11px;
+  padding: 6px 12px;
+}
+
+/* Кнопка «Оценить» — не меняет цвет на красный при ховере */
+.sd-btn--review.sd-btn--ghost:hover {
+  color: var(--gold);
+  border-color: rgba(201,168,76,0.3);
+  background: rgba(201,168,76,0.07);
+}
+
+/* Дата посещения */
+.sd-last-accessed {
+  padding: 8px 20px 14px;
+  font-size: 11px;
+  color: var(--white-dim);
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════
+   ЗАВЕРШЁННЫЕ КУРСЫ
+══════════════════════════════ */
+
+.sd-completed-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sd-completed-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 14px;
+  padding: 16px 20px;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.sd-completed-card:hover {
+  border-color: rgba(74,222,128,0.25);
+  transform: translateX(4px);
+}
+
+.sd-completed-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: var(--bg-3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-dim);
+}
+
+.sd-completed-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.sd-completed-title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sd-completed-meta {
+  font-size: 11px;
+  color: var(--white-dim);
+  letter-spacing: 0.05em;
+}
+
+.sd-completed-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.25);
+  padding: 4px 12px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════
+   ЗВЁЗДЫ ОТЗЫВА (завершённые курсы)
+══════════════════════════════ */
+
+.sd-completed-review {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.sd-review-star {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.1);
+  transition: color 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+
+.sd-review-star--filled {
+  color: var(--gold);
+  filter: drop-shadow(0 1px 5px rgba(201, 168, 76, 0.5));
+}
+
+.sd-completed-card:hover .sd-review-star--filled {
+  filter: drop-shadow(0 2px 8px rgba(201, 168, 76, 0.65));
+}
+
+/* ══════════════════════════════
+   МОДАЛЬНОЕ ОКНО
+══════════════════════════════ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.modal-active {
+  display: flex;
+  animation: modalBgIn 0.25s ease;
+}
+
+@keyframes modalBgIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  padding: 36px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: modalBoxIn 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes modalBoxIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-box--small { max-width: 420px; }
+
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 14px;
+  color: var(--white-dim);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modal-orb-1 {
+  position: absolute;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(201,168,76,0.08), transparent 70%);
+  border-radius: 50%;
+  bottom: -60px; right: -60px;
+  pointer-events: none;
+}
+
+body.modal-open { overflow: hidden; }
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .tc-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .tc-stats { grid-template-columns: repeat(2, 1fr); }
+  .sd-courses-grid { grid-template-columns: 1fr; }
+  .sd-completed-card { flex-wrap: wrap; }
+  .sd-section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .tc-stats { grid-template-columns: 1fr; }
+}

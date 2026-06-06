@@ -1,0 +1,496 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Мои курсы — Erudito</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/teacher_courses.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="logo"><span class="logo-e">E</span>rudito</a>
+      <ul class="nav-links">
+        <li><a href="/#features">Возможности</a></li>
+        <li><a href="/#courses">Курсы</a></li>
+        <li><a href="/#how">Как это работает</a></li>
+        <li><a href="/teacher/courses/" style="color: var(--gold)">Мои курсы</a></li>
+      </ul>
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          <span class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</span>
+          <a href="/logout/" class="btn-gold">Выйти</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ФОНОВЫЕ ДЕКОРАЦИИ -->
+  <div class="tc-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
+  <main class="tc-main">
+
+    <!-- ШАПКА СТРАНИЦЫ -->
+    <div class="tc-header reveal">
+      <div class="tc-header-left">
+        <div class="tc-label">✦ Кабинет преподавателя</div>
+        <h1 class="tc-title">
+          Мои <em>курсы</em>
+        </h1>
+        <p class="tc-sub">Управляй своими курсами, создавай новые и следи за прогрессом студентов.</p>
+      </div>
+      <div class="tc-header-right">
+        <button class="btn-gold btn-lg" id="btnCreateCourse">
+          <span class="btn-icon">✦</span> Создать курс
+        </button>
+      </div>
+    </div>
+
+    <!-- СТАТИСТИКА -->
+    <div class="tc-stats reveal">
+      <div class="tc-stat-card">
+        <div class="tsc-value">{{ courses|length }}</div>
+        <div class="tsc-label">Курсов создано</div>
+      </div>
+      <div class="tc-stat-card">
+        <div class="tsc-value">{{ total_students }}</div>
+        <div class="tsc-label">Студентов всего</div>
+      </div>
+      <div class="tc-stat-card">
+        <div class="tsc-value">{{ published_count }}</div>
+        <div class="tsc-label">Опубликованных</div>
+      </div>
+      <div class="tc-stat-card">
+        <div class="tsc-value">{{ total_reviews }}</div>
+        <div class="tsc-label">Отзывов получено</div>
+      </div>
+      <div class="tc-stat-card {% if overall_avg_rating %}tc-stat-card--gold{% endif %}">
+        {% if overall_avg_rating %}
+          <div class="tsc-value tsc-value--rating">{{ overall_avg_rating }}<span class="tsc-star">★</span></div>
+        {% else %}
+          <div class="tsc-value">—</div>
+        {% endif %}
+        <div class="tsc-label">Средняя оценка</div>
+      </div>
+    </div>
+
+    <!-- СООБЩЕНИЯ -->
+    {% if messages %}
+      <div class="tc-messages">
+        {% for message in messages %}
+          <div class="tc-message tc-message--{{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- СПИСОК КУРСОВ -->
+    {% if courses %}
+      <div class="tc-courses-grid">
+        {% for course in courses %}
+          <div class="tc-course-card reveal">
+
+            <!-- Бейдж статуса -->
+            <div class="tcc-status {% if course.is_published %}tcc-status--published{% else %}tcc-status--draft{% endif %}">
+              {% if course.is_published %}● Опубликован{% else %}○ Черновик{% endif %}
+            </div>
+
+            <!-- Шапка карточки -->
+            <div class="tcc-thumb">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+              {% else %}
+                <div class="tcc-thumb-placeholder">
+                  {% if course.category == 'dev' %}💻
+                  {% elif course.category == 'design' %}🎨
+                  {% elif course.category == 'data' %}📊
+                  {% else %}📚{% endif %}
+                </div>
+              {% endif %}
+              <div class="tcc-category">{{ course.get_category_display }}</div>
+            </div>
+
+            <!-- Тело карточки -->
+            <div class="tcc-body">
+              <h3 class="tcc-title">{{ course.title }}</h3>
+              <p class="tcc-desc">{{ course.description|truncatechars:100 }}</p>
+
+              <div class="tcc-meta">
+                <span>{{ course.lessons.count }} уроков</span>
+                <span>{{ course.get_level_display }}</span>
+              </div>
+            </div>
+
+            <!-- Действия -->
+            <div class="tcc-actions">
+              <a href="/teacher/courses/{{ course.pk }}/edit/" class="tcc-btn tcc-btn--edit">
+                ✎ Редактировать
+              </a>
+              <button class="tcc-btn tcc-btn--delete"
+                      data-course-id="{{ course.pk }}"
+                      data-course-title="{{ course.title }}"
+                      onclick="confirmDelete({{ course.pk }}, '{{ course.title }}')">
+                ✕ Удалить
+              </button>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <!-- ПУСТОЕ СОСТОЯНИЕ -->
+      <div class="tc-empty reveal">
+        <div class="tc-empty-icon">📚</div>
+        <h2>Ещё нет курсов</h2>
+        <p>Создай свой первый курс и начни обучать студентов</p>
+        <button class="btn-gold btn-lg" id="btnCreateCourseEmpty">
+          <span class="btn-icon">✦</span> Создать первый курс
+        </button>
+      </div>
+    {% endif %}
+
+
+    <!-- СЕКЦИЯ: ОБРАТНАЯ СВЯЗЬ СТУДЕНТОВ -->
+    <div class="tc-feedback reveal">
+
+      <div class="tcf-header">
+        <div class="tc-label">❖ Аналитика</div>
+        <h2 class="tcf-title">Обратная связь <em>студентов</em></h2>
+        <p class="tcf-sub">Рейтинги и отзывы после полного прохождения курса</p>
+      </div>
+
+      {% if total_reviews %}
+
+        <!-- ПЕР-КУРСОВЫЕ КАРТОЧКИ С РЕЙТИНГОМ -->
+        <div class="tcf-courses-row">
+          {% for course in courses %}{% if course.reviews_count %}
+          <div class="tcf-crc">
+
+            <div class="tcf-crc-top">
+              <div class="tcf-crc-thumb">
+                {% if course.thumbnail %}
+                  <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+                {% else %}
+                  <span>{% if course.category == 'dev' %}💻{% elif course.category == 'design' %}🎨{% elif course.category == 'data' %}📊{% else %}📚{% endif %}</span>
+                {% endif %}
+              </div>
+              <div class="tcf-crc-info">
+                <div class="tcf-crc-name">{{ course.title|truncatechars:36 }}</div>
+                <div class="tcf-crc-count">{{ course.reviews_count }} отзыв{{ course.reviews_count|pluralize:",,ов" }}</div>
+              </div>
+            </div>
+
+            <div class="tcf-crc-rating-row">
+              <span class="tcf-crc-num">{{ course.avg_rating|floatformat:1 }}</span>
+              <div class="tcf-crc-stars">
+                {% for i in "12345" %}
+                  <span class="tcf-star {% if forloop.counter <= course.avg_rating %}tcf-star--on{% endif %}">&#9733;</span>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="tcf-crc-dist">
+              {% for item in course.rating_dist %}
+              <div class="tcf-dist-row">
+                <span class="tcf-dist-label">{{ item.stars }}★</span>
+                <div class="tcf-dist-track">
+                  <div class="tcf-dist-fill" style="width:{{ item.pct }}%"></div>
+                </div>
+                <span class="tcf-dist-count">{{ item.count }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            <a href="/courses/{{ course.pk }}/" class="tcf-crc-link">Страница курса →</a>
+          </div>
+          {% endif %}{% endfor %}
+        </div>
+
+        <!-- ПОСЛЕДНИЕ ОТЗЫВЫ -->
+        <div class="tcf-reviews-wrap">
+          <div class="tcf-reviews-head">
+            <span class="tcf-reviews-label">Последние отзывы</span>
+            <span class="tcf-reviews-total">{{ total_reviews }} всего</span>
+          </div>
+          <div class="tcf-reviews-list">
+            {% for review in recent_reviews %}
+            <div class="tcf-review-card" style="animation-delay: {{ forloop.counter0 }}00ms">
+
+              <div class="tcf-review-header">
+                <div class="tcf-review-author">
+                  <div class="tcf-review-avatar">{{ review.student.first_name|first }}</div>
+                  <div class="tcf-review-author-info">
+                    <span class="tcf-review-name">{{ review.student.first_name }} {{ review.student.last_name }}</span>
+                    <span class="tcf-review-course-tag">{{ review.course.title|truncatechars:32 }}</span>
+                  </div>
+                </div>
+                <div class="tcf-review-right">
+                  <div class="tcf-review-stars">
+                    {% for i in "12345" %}
+                      <span class="tcf-star {% if forloop.counter <= review.rating %}tcf-star--on{% endif %}">&#9733;</span>
+                    {% endfor %}
+                    <span class="tcf-review-rating-num">{{ review.rating }}.0</span>
+                  </div>
+                  <span class="tcf-review-date">{{ review.created_at|date:"d E Y" }}</span>
+                </div>
+              </div>
+
+              {% if review.text %}
+              <p class="tcf-review-text">{{ review.text|truncatechars:220 }}</p>
+              {% else %}
+              <p class="tcf-review-text tcf-review-text--empty">Студент не оставил текстового комментария</p>
+              {% endif %}
+
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      {% else %}
+
+        <!-- ПУСТОЕ СОСТОЯНИЕ -->
+        <div class="tcf-empty">
+          <div class="tcf-empty-icon">💬</div>
+          <p class="tcf-empty-title">Отзывов пока нет</p>
+          <p class="tcf-empty-sub">Студенты смогут оставить отзыв после полного прохождения курса</p>
+        </div>
+
+      {% endif %}
+    </div>
+
+  </main>
+
+
+  <!-- ══════════════════════════════════════
+       МОДАЛЬНОЕ ОКНО: СОЗДАНИЕ КУРСА
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalCreateCourse">
+    <div class="modal-box modal-box--course" id="modalCourseBox">
+      <button class="modal-close" id="closeCreateCourse">✕</button>
+
+      <!-- Шаги -->
+      <div class="course-steps">
+        <div class="cs-step active" data-step="1">
+          <div class="cs-dot">1</div>
+          <span>Основное</span>
+        </div>
+        <div class="cs-line"></div>
+        <div class="cs-step" data-step="2">
+          <div class="cs-dot">2</div>
+          <span>Детали</span>
+        </div>
+        <div class="cs-line"></div>
+        <div class="cs-step" data-step="3">
+          <div class="cs-dot">3</div>
+          <span>Введение</span>
+        </div>
+      </div>
+
+      <form id="createCourseForm" action="/teacher/courses/create/" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <!-- ШАГ 1: Основное -->
+        <div class="course-step-panel active" id="step1">
+          <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+          <h2 class="modal-title">Новый курс</h2>
+          <p class="modal-sub">Давай начнём с основной информации о курсе</p>
+
+          <div class="modal-form">
+            <div class="mf-group">
+              <label class="mf-label">Название курса</label>
+              <div class="mf-input-wrap">
+                <span class="mf-icon">✦</span>
+                <input class="mf-input" name="title" type="text" placeholder="Например: React с нуля до Pro" required />
+              </div>
+            </div>
+            <div class="mf-group">
+              <label class="mf-label">Описание</label>
+              <div class="mf-input-wrap mf-textarea-wrap">
+                <textarea class="mf-input mf-textarea" name="description" placeholder="Расскажи о чём этот курс и чему научатся студенты..." required></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <div></div>
+            <button type="button" class="btn-gold" onclick="nextStep(2)">Далее →</button>
+          </div>
+        </div>
+
+        <!-- ШАГ 2: Детали -->
+        <div class="course-step-panel" id="step2">
+          <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+          <h2 class="modal-title">Параметры</h2>
+          <p class="modal-sub">Укажи категорию и уровень курса</p>
+
+          <div class="modal-form">
+            <div class="mf-group">
+              <label class="mf-label">Категория</label>
+              <div class="category-picker">
+                <label class="cat-option">
+                  <input type="radio" name="category" value="dev" required />
+                  <div class="cat-card">
+                    <span class="cat-icon">💻</span>
+                    <span>Разработка</span>
+                  </div>
+                </label>
+                <label class="cat-option">
+                  <input type="radio" name="category" value="design" />
+                  <div class="cat-card">
+                    <span class="cat-icon">🎨</span>
+                    <span>Дизайн</span>
+                  </div>
+                </label>
+                <label class="cat-option">
+                  <input type="radio" name="category" value="data" />
+                  <div class="cat-card">
+                    <span class="cat-icon">📊</span>
+                    <span>Аналитика</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="mf-group">
+              <label class="mf-label">Уровень сложности</label>
+              <div class="level-picker">
+                <label class="level-option">
+                  <input type="radio" name="level" value="beginner" required />
+                  <div class="level-card">
+                    <span class="level-dot level-dot--green"></span> Начинающий
+                  </div>
+                </label>
+                <label class="level-option">
+                  <input type="radio" name="level" value="intermediate" />
+                  <div class="level-card">
+                    <span class="level-dot level-dot--yellow"></span> Средний
+                  </div>
+                </label>
+                <label class="level-option">
+                  <input type="radio" name="level" value="advanced" />
+                  <div class="level-card">
+                    <span class="level-dot level-dot--red"></span> Продвинутый
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="mf-group">
+              <label class="mf-label">Обложка курса (необязательно)</label>
+              <div class="file-drop" id="fileDrop">
+                <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" />
+                <div class="file-drop-content">
+                  <span class="file-drop-icon">🖼</span>
+                  <span class="file-drop-text">Перетащи изображение или <u>выбери файл</u></span>
+                  <span class="file-drop-hint">JPG, PNG — до 5 МБ</span>
+                </div>
+                <div class="file-preview" id="filePreview" style="display:none;">
+                  <img id="previewImg" src="" alt="preview" />
+                  <button type="button" class="file-remove" id="fileRemove">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-outline" onclick="prevStep(1)">← Назад</button>
+            <button type="button" class="btn-gold" onclick="nextStep(3)">Далее →</button>
+          </div>
+        </div>
+
+        <!-- ШАГ 3: Введение -->
+        <div class="course-step-panel" id="step3">
+          <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+          <h2 class="modal-title">Введение</h2>
+          <p class="modal-sub">Добавь вступительную часть — студенты увидят её первой</p>
+
+          <div class="modal-form">
+            <div class="mf-group">
+              <label class="mf-label">Заголовок введения</label>
+              <div class="mf-input-wrap">
+                <span class="mf-icon">✦</span>
+                <input class="mf-input" name="intro_title" type="text" placeholder="Введение в курс" />
+              </div>
+            </div>
+            <div class="mf-group">
+              <label class="mf-label">Текст ознакомления</label>
+              <div class="mf-input-wrap mf-textarea-wrap">
+                <textarea class="mf-input mf-textarea" name="intro_text" placeholder="Расскажи студентам что их ждёт в курсе..."></textarea>
+              </div>
+            </div>
+            <div class="mf-group">
+              <label class="mf-label">Ссылка на вступительное видео (необязательно)</label>
+              <div class="mf-input-wrap">
+                <span class="mf-icon">▶</span>
+                <input class="mf-input" name="intro_video" type="url" placeholder="https://youtube.com/..." />
+              </div>
+            </div>
+
+            <div class="publish-toggle">
+              <label class="pt-label">
+                <input type="checkbox" name="is_published" id="isPublished" />
+                <div class="pt-switch"></div>
+                <div class="pt-text">
+                  <span>Опубликовать сразу</span>
+                  <small>Курс станет доступен студентам</small>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button type="button" class="btn-outline" onclick="prevStep(2)">← Назад</button>
+            <button type="submit" class="btn-gold btn-modal-submit">
+              ✦ Создать курс
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+      <div class="modal-orb modal-orb-1"></div>
+      <div class="modal-orb modal-orb-2"></div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalDelete">
+    <div class="modal-box modal-box--small" id="modalDeleteBox">
+      <div class="delete-icon">✕</div>
+      <h2 class="modal-title" style="text-align:center; font-size:1.6rem;">Удалить курс?</h2>
+      <p class="modal-sub" style="text-align:center;" id="deleteCourseTitle"></p>
+      <p style="text-align:center; font-size:13px; color:rgba(240,237,230,0.5); margin-bottom:28px;">
+        Это действие нельзя отменить. Все уроки и материалы будут удалены.
+      </p>
+      <form id="deleteForm" method="post">
+        {% csrf_token %}
+        <div class="delete-actions">
+          <button type="button" class="btn-outline" onclick="closeDeleteModal()">Отмена</button>
+          <button type="submit" class="btn-delete">Удалить</button>
+        </div>
+      </form>
+      <div class="modal-orb modal-orb-1"></div>
+    </div>
+  </div>
+
+
+  <script src="{% static 'main/js/teacher_courses.js' %}"></script>
+</body>
+</html>

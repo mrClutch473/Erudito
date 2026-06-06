@@ -1,0 +1,320 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Мои курсы — Erudito</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/teacher_courses.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/student_dashboard.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="logo"><span class="logo-e">E</span>rudito</a>
+      <ul class="nav-links">
+        <li><a href="/student/dashboard/" style="color: var(--gold)">Мои курсы</a></li>
+        <li><a href="{% url 'courses_catalog' %}">Каталог</a></li>
+      </ul>
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          <span class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</span>
+          <a href="/logout/" class="btn-gold">Выйти</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ФОН -->
+  <div class="tc-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <main class="tc-main">
+
+    <!-- ШАПКА -->
+    <div class="tc-header reveal">
+      <div class="tc-header-left">
+        <div class="tc-label">✦ Личный кабинет студента</div>
+        <h1 class="tc-title">
+          Привет, <em>{{ user.first_name }}</em> 👋
+        </h1>
+        <p class="tc-sub">Продолжай учиться — каждый урок приближает тебя к цели.</p>
+      </div>
+      <div class="tc-header-right">
+        <a href="{% url 'courses_catalog' %}" class="btn-gold btn-lg">
+          <span class="btn-icon">✦</span> Найти курс
+        </a>
+      </div>
+    </div>
+
+    <!-- СТАТИСТИКА -->
+    <div class="tc-stats reveal">
+      <div class="tc-stat-card">
+        <div class="tsc-icon">📚</div>
+        <div class="tsc-value" data-target="{{ total_enrolled }}">0</div>
+        <div class="tsc-label">Курсов в обучении</div>
+      </div>
+      <div class="tc-stat-card">
+        <div class="tsc-icon">🏆</div>
+        <div class="tsc-value" data-target="{{ total_completed }}">0</div>
+        <div class="tsc-label">Завершено курсов</div>
+      </div>
+      <div class="tc-stat-card">
+        <div class="tsc-icon">⏱</div>
+        <div class="tsc-value" data-target="{{ total_lessons_done }}">0</div>
+        <div class="tsc-label">Уроков пройдено</div>
+      </div>
+      <div class="tc-stat-card">
+        <div class="tsc-icon">🔥</div>
+        <div class="tsc-value" data-target="{{ avg_progress }}">0</div>
+        <div class="tsc-label-with-unit">
+          <span class="tsc-label">Средний прогресс</span>
+          <span class="tsc-unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- СООБЩЕНИЯ -->
+    {% if messages %}
+      <div class="tc-messages">
+        {% for message in messages %}
+          <div class="tc-message tc-message--{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- АКТИВНЫЕ КУРСЫ -->
+    {% if active_enrollments %}
+
+      <div class="sd-section reveal">
+        <div class="sd-section-header">
+          <div class="tc-label">Продолжить обучение</div>
+          <span class="sd-count">{{ active_enrollments|length }} курс{{ active_enrollments|length|pluralize:",,ов" }}</span>
+        </div>
+
+        <div class="sd-courses-grid">
+          {% for enrollment in active_enrollments %}
+          <div class="sd-course-card reveal">
+
+            <!-- Превью -->
+            <div class="sd-thumb">
+              {% if enrollment.course.thumbnail %}
+                <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" />
+              {% else %}
+                <div class="tcc-thumb-placeholder">
+                  {% if enrollment.course.category == 'dev' %}💻
+                  {% elif enrollment.course.category == 'design' %}🎨
+                  {% elif enrollment.course.category == 'data' %}📊
+                  {% else %}📚{% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Прогресс поверх превью -->
+              <div class="sd-thumb-progress">
+                <div class="sd-thumb-bar">
+                  <div class="sd-thumb-fill" style="width: {{ enrollment.progress }}%"></div>
+                </div>
+                <span class="sd-thumb-pct">{{ enrollment.progress }}%</span>
+              </div>
+
+              <div class="tcc-category">{{ enrollment.course.get_category_display }}</div>
+            </div>
+
+            <!-- Тело карточки -->
+            <div class="sd-card-body">
+              <div class="sd-card-meta">
+                <span class="sd-level sd-level--{{ enrollment.course.level }}">
+                  {% if enrollment.course.level == 'beginner' %}● Начинающий
+                  {% elif enrollment.course.level == 'intermediate' %}● Средний
+                  {% else %}● Продвинутый{% endif %}
+                </span>
+                <span class="sd-lessons-count">{{ enrollment.course.lessons.count }} уроков</span>
+              </div>
+
+              <h3 class="sd-card-title">{{ enrollment.course.title }}</h3>
+              <p class="sd-card-desc">{{ enrollment.course.description|truncatechars:90 }}</p>
+
+              <!-- Прогресс-бар -->
+              <div class="sd-progress-wrap">
+                <div class="sd-progress-label">
+                  <span>Прогресс</span>
+                  <span class="sd-progress-pct">{{ enrollment.progress }}%</span>
+                </div>
+                <div class="sd-progress-bar">
+                  <div class="sd-progress-fill" data-width="{{ enrollment.progress }}"></div>
+                </div>
+                <div class="sd-progress-sub">
+                  {{ enrollment.lessons_done }} из {{ enrollment.course.lessons.count }} уроков
+                </div>
+              </div>
+
+              <!-- Учитель -->
+              <div class="sd-teacher">
+                <div class="sd-teacher-avatar">{{ enrollment.course.teacher.first_name|first }}</div>
+                <span>{{ enrollment.course.teacher.first_name }} {{ enrollment.course.teacher.last_name }}</span>
+              </div>
+            </div>
+
+            <!-- Действия -->
+            <div class="sd-card-actions">
+              <a href="/student/courses/{{ enrollment.course.pk }}/learn/{{ enrollment.next_lesson_id }}/" class="sd-btn sd-btn--primary">
+                {% if enrollment.progress == 0 %}▶ Начать{% else %}▶ Продолжить{% endif %}
+              </a>
+              <button class="sd-btn sd-btn--ghost"
+                      onclick="confirmUnenroll({{ enrollment.pk }}, '{{ enrollment.course.title|escapejs }}')">
+                Отписаться
+              </button>
+            </div>
+
+            <!-- Дата последнего посещения -->
+            {% if enrollment.last_accessed %}
+            <div class="sd-last-accessed">
+              🕐 Последний раз: {{ enrollment.last_accessed|timesince }} назад
+            </div>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    {% endif %}
+
+    <!-- ЗАВЕРШЁННЫЕ КУРСЫ -->
+    {% if completed_enrollments %}
+      <div class="sd-section reveal">
+        <div class="sd-section-header">
+          <div class="tc-label">Завершённые курсы</div>
+          <span class="sd-count">{{ completed_enrollments|length }}</span>
+        </div>
+
+        <div class="sd-completed-grid">
+          {% for enrollment in completed_enrollments %}
+          <div class="sd-completed-card reveal">
+            <div class="sd-completed-icon">
+              {% if enrollment.course.category == 'dev' %}💻
+              {% elif enrollment.course.category == 'design' %}🎨
+              {% elif enrollment.course.category == 'data' %}📊
+              {% else %}📚{% endif %}
+            </div>
+            <div class="sd-completed-info">
+              <div class="sd-completed-title">{{ enrollment.course.title }}</div>
+              <div class="sd-completed-meta">
+                {{ enrollment.course.get_category_display }} ·
+                {{ enrollment.course.lessons.count }} уроков
+              </div>
+            </div>
+            <div class="sd-completed-badge">
+              <span>✓</span> Завершён
+            </div>
+            <a href="/courses/{{ enrollment.course.pk }}/" class="sd-btn sd-btn--ghost sd-btn--sm">
+              Вернуться к курсу
+            </a>
+            <!-- Отзыв -->
+            {% if enrollment.review %}
+              <div class="sd-completed-review">
+                {% for i in "12345" %}
+                  <span class="sd-review-star {% if forloop.counter <= enrollment.review.rating %}sd-review-star--filled{% endif %}">★</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              <a href="/student/courses/{{ enrollment.course.pk }}/learn/{{ enrollment.course.lessons.last.pk }}/"
+                 class="sd-btn sd-btn--ghost sd-btn--sm sd-btn--review">
+                ★ Оценить
+              </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- ПУСТОЕ СОСТОЯНИЕ -->
+    {% if not active_enrollments and not completed_enrollments %}
+      <div class="tc-empty reveal">
+        <div class="tc-empty-icon">🎓</div>
+        <h2>Ты ещё не записан ни на один курс</h2>
+        <p>Найди интересный курс в каталоге и начни обучение прямо сейчас</p>
+        <a href="{% url 'courses_catalog' %}" class="btn-gold btn-lg">
+          <span class="btn-icon">✦</span> Перейти в каталог
+        </a>
+      </div>
+    {% endif %}
+
+    <!-- РЕКОМЕНДОВАННЫЕ КУРСЫ -->
+    {% if recommended_courses %}
+      <div class="sd-section reveal">
+        <div class="sd-section-header">
+          <div class="tc-label">Рекомендуем попробовать</div>
+        </div>
+        <div class="tc-courses-grid">
+          {% for course in recommended_courses %}
+          <div class="tc-course-card reveal">
+            <div class="tcc-thumb">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+              {% else %}
+                <div class="tcc-thumb-placeholder">
+                  {% if course.category == 'dev' %}💻
+                  {% elif course.category == 'design' %}🎨
+                  {% elif course.category == 'data' %}📊
+                  {% else %}📚{% endif %}
+                </div>
+              {% endif %}
+              <div class="tcc-category">{{ course.get_category_display }}</div>
+            </div>
+            <div class="tcc-body">
+              <h3 class="tcc-title">{{ course.title }}</h3>
+              <p class="tcc-desc">{{ course.description|truncatechars:80 }}</p>
+              <div class="tcc-meta">
+                <span>{{ course.lessons.count }} уроков</span>
+                <span>{{ course.get_level_display }}</span>
+              </div>
+            </div>
+            <div class="tcc-actions">
+              <a href="/courses/{{ course.pk }}/" class="tcc-btn tcc-btn--edit">
+                Подробнее →
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  </main>
+
+
+  <!-- МОДАЛЬНОЕ: ОТПИСАТЬСЯ ОТ КУРСА -->
+  <div class="modal-overlay" id="modalUnenroll">
+    <div class="modal-box modal-box--small">
+      <div class="delete-icon">✕</div>
+      <h2 class="modal-title" style="text-align:center; font-size:1.6rem;">Отписаться?</h2>
+      <p class="modal-sub" style="text-align:center;" id="unenrollCourseName"></p>
+      <p style="text-align:center; font-size:13px; color:rgba(240,237,230,0.5); margin-bottom:28px;">
+        Твой прогресс по этому курсу будет удалён.
+      </p>
+      <form id="unenrollForm" method="post">
+        {% csrf_token %}
+        <div class="delete-actions">
+          <button type="button" class="btn-outline" onclick="closeUnenrollModal()">Отмена</button>
+          <button type="submit" class="btn-delete">Отписаться</button>
+        </div>
+      </form>
+      <div class="modal-orb modal-orb-1"></div>
+    </div>
+  </div>
+
+
+  <script src="{% static 'main/js/student_dashboard.js' %}"></script>
+</body>
+</html>

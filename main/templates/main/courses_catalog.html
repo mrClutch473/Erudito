@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Каталог курсов — Erudito</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/courses_catalog.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="logo"><span class="logo-e">E</span>rudito</a>
+      <ul class="nav-links">
+        {% if user.is_authenticated and user.is_teacher %}
+          <li><a href="/teacher/courses/">Мои курсы</a></li>
+        {% endif %}
+        {% if user.is_authenticated and user.is_student %}
+          <li><a href="/student/dashboard/">Мои курсы</a></li>
+        {% endif %}
+        <li><a href="/courses/" style="color: var(--gold)">Каталог</a></li>
+      </ul>
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          {% if user.is_teacher %}
+            <a href="{% url 'teacher_courses' %}" class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</a>
+          {% endif %}
+          {% if user.is_student %}
+            <a href="{% url 'student_dashboard' %}" class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</a>
+          {% endif %}
+          <a href="/logout/" class="btn-gold">Выйти</a>
+        {% else %}
+          <a href="#" class="btn-ghost" id="btnLogin">Войти</a>
+          <a href="#" class="btn-gold" id="btnRegister">Зарегистрироваться</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ФОН -->
+  <div class="tc-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <main class="cat-main">
+
+    <!-- HERO-ШАПКА КАТАЛОГА -->
+    <div class="cat-hero reveal">
+      <div class="cat-hero-label">✦ Образовательная платформа</div>
+      <h1 class="cat-hero-title">
+        Каталог <em>курсов</em>
+      </h1>
+      <p class="cat-hero-sub">
+        {{ total_courses }} курс{{ total_courses|pluralize:",,ов" }} от лучших преподавателей.<br />
+        Найди своё направление и начни учиться сегодня.
+      </p>
+
+      <!-- ПОИСК -->
+      <div class="cat-search-wrap reveal">
+        <div class="cat-search">
+          <span class="cat-search-icon">🔍</span>
+          <input
+            class="cat-search-input"
+            id="searchInput"
+            type="text"
+            placeholder="Поиск по названию или описанию..."
+            value="{{ search_query }}"
+          />
+          {% if search_query %}
+            <button class="cat-search-clear" id="clearSearch">✕</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ФИЛЬТРЫ И СОРТИРОВКА -->
+    <div class="cat-toolbar reveal">
+
+      <!-- Фильтры по категории -->
+      <div class="cat-filters">
+        <a href="{% url 'courses_catalog' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+           class="cat-filter {% if not active_category %}cat-filter--active{% endif %}">
+          Все
+        </a>
+        <a href="?category=dev{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="cat-filter {% if active_category == 'dev' %}cat-filter--active{% endif %}">
+          💻 Разработка
+        </a>
+        <a href="?category=design{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="cat-filter {% if active_category == 'design' %}cat-filter--active{% endif %}">
+          🎨 Дизайн
+        </a>
+        <a href="?category=data{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="cat-filter {% if active_category == 'data' %}cat-filter--active{% endif %}">
+          📊 Аналитика
+        </a>
+      </div>
+
+      <!-- Фильтр по уровню + сортировка -->
+      <div class="cat-toolbar-right">
+        <div class="cat-select-wrap">
+          <select class="cat-select" id="levelSelect" onchange="applyFilters()">
+            <option value="" {% if not active_level %}selected{% endif %}>Любой уровень</option>
+            <option value="beginner" {% if active_level == 'beginner' %}selected{% endif %}>Начинающий</option>
+            <option value="intermediate" {% if active_level == 'intermediate' %}selected{% endif %}>Средний</option>
+            <option value="advanced" {% if active_level == 'advanced' %}selected{% endif %}>Продвинутый</option>
+          </select>
+        </div>
+        <div class="cat-select-wrap">
+          <select class="cat-select" id="sortSelect" onchange="applyFilters()">
+            <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Новые сначала</option>
+            <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Старые сначала</option>
+            <option value="title" {% if sort == 'title' %}selected{% endif %}>По алфавиту</option>
+            <option value="-avg_rating" {% if sort == '-avg_rating' %}selected{% endif %}>По рейтингу</option>
+          </select>
+        </div>
+        <div class="cat-view-toggle">
+          <button class="cat-view-btn cat-view-btn--active" id="viewGrid" title="Сетка">⊞</button>
+          <button class="cat-view-btn" id="viewList" title="Список">☰</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- РЕЗУЛЬТАТ ПОИСКА -->
+    {% if search_query %}
+      <div class="cat-search-result reveal">
+        Результаты по запросу <strong>«{{ search_query }}»</strong> —
+        найдено <strong>{{ courses|length }}</strong> курс{{ courses|length|pluralize:",,ов" }}
+      </div>
+    {% endif %}
+
+    <!-- СЕТКА КУРСОВ -->
+    {% if courses %}
+      <div class="cat-grid" id="coursesGrid">
+        {% for course in courses %}
+          <div class="cat-card reveal" data-category="{{ course.category }}" data-level="{{ course.level }}">
+
+            <!-- Превью -->
+            <div class="cat-card-thumb">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+              {% else %}
+                <div class="cat-thumb-placeholder">
+                  {% if course.category == 'dev' %}💻
+                  {% elif course.category == 'design' %}🎨
+                  {% elif course.category == 'data' %}📊
+                  {% else %}📚{% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Бейджи поверх превью -->
+              <div class="cat-card-badges">
+                <span class="cat-badge cat-badge--category">{{ course.get_category_display }}</span>
+                {% if course.enrollments_count > 50 %}
+                  <span class="cat-badge cat-badge--hot">🔥 Хит</span>
+                {% endif %}
+              </div>
+
+              <!-- Рейтинг (правый верхний угол) -->
+              {% if course.avg_rating %}
+                <div class="cat-card-rating">
+                  <span class="cat-rating-star">★</span>
+                  <span class="cat-rating-value">{{ course.avg_rating|floatformat:1 }}</span>
+                  {% if course.reviews_count %}
+                    <span class="cat-rating-count">({{ course.reviews_count }})</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Уровень -->
+              <div class="cat-card-level cat-level--{{ course.level }}">
+                {% if course.level == 'beginner' %}● Начинающий
+                {% elif course.level == 'intermediate' %}● Средний
+                {% else %}● Продвинутый{% endif %}
+              </div>
+            </div>
+
+            <!-- Тело -->
+            <div class="cat-card-body">
+              <h3 class="cat-card-title">{{ course.title }}</h3>
+              <p class="cat-card-desc">{{ course.description|truncatechars:110 }}</p>
+
+              <!-- Мета-информация -->
+              <div class="cat-card-meta">
+                <div class="cat-meta-item">
+                  <span class="cat-meta-icon">📖</span>
+                  <span>{{ course.lessons.count }} урок{{ course.lessons.count|pluralize:",,ов" }}</span>
+                </div>
+                <div class="cat-meta-item">
+                  <span class="cat-meta-icon">👥</span>
+                  <span>{{ course.enrollments_count }} студент{{ course.enrollments_count|pluralize:",,ов" }}</span>
+                </div>
+                {% if course.total_duration %}
+                <div class="cat-meta-item">
+                  <span class="cat-meta-icon">⏱</span>
+                  <span>{{ course.total_duration }} мин</span>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Преподаватель -->
+              <div class="cat-card-teacher">
+                <div class="cat-teacher-avatar" style="background: var(--gold);">
+                  {{ course.teacher.first_name|first }}
+                </div>
+                <div class="cat-teacher-info">
+                  <span class="cat-teacher-name">{{ course.teacher.first_name }} {{ course.teacher.last_name }}</span>
+                  <span class="cat-teacher-role">Преподаватель</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Футер карточки -->
+            <div class="cat-card-footer">
+              {% if user.is_authenticated and user.is_student %}
+                {% if course.pk in enrolled_ids %}
+                  <a href="/student/dashboard/" class="cat-btn cat-btn--enrolled">
+                    ✓ Вы записаны
+                  </a>
+                {% else %}
+                  <a href="/courses/{{ course.pk }}/" class="cat-btn cat-btn--primary">
+                    Подробнее →
+                  </a>
+                {% endif %}
+              {% else %}
+                <a href="/courses/{{ course.pk }}/" class="cat-btn cat-btn--primary">
+                  Подробнее →
+                </a>
+              {% endif %}
+              <a href="/courses/{{ course.pk }}/" class="cat-btn cat-btn--ghost">Смотреть</a>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <!-- ПУСТОЕ СОСТОЯНИЕ -->
+      <div class="cat-empty reveal">
+        <div class="cat-empty-icon">🔍</div>
+        <h2>Ничего не найдено</h2>
+        <p>Попробуй изменить параметры поиска или выбрать другую категорию</p>
+        <a href="{% url 'courses_catalog' %}" class="btn-gold btn-lg">
+          Показать все курсы
+        </a>
+      </div>
+    {% endif %}
+
+  </main>
+
+  <script>
+    const BASE_URL = '{% url "courses_catalog" %}';
+  </script>
+  <script src="{% static 'main/js/courses_catalog.js' %}"></script>
+</body>
+</html>

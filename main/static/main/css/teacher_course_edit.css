@@ -1,0 +1,1481 @@
+/* ============================
+   ERUDITO — TEACHER COURSE EDIT
+   ============================ */
+
+/* ── Тело страницы ────────────────────────────── */
+.edit-body {
+  overflow: hidden;
+}
+
+/* ── Хлебные крошки в навбаре ─────────────────── */
+.nav-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  padding: 0 24px;
+  overflow: hidden;
+}
+
+.breadcrumb-link {
+  font-size: 14px;
+  color: var(--white-dim);
+  transition: color var(--transition);
+  white-space: nowrap;
+}
+.breadcrumb-link:hover { color: var(--gold); }
+
+.breadcrumb-sep {
+  color: var(--border-dim);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.breadcrumb-current {
+  font-size: 13px;
+  color: var(--white);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ══════════════════════════════
+   LAYOUT
+══════════════════════════════ */
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+  padding-top: 65px; /* navbar height */
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+
+.editor-sidebar {
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-dim);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+
+/* Шапка сайдбара */
+.sidebar-header {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.sidebar-course-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--bg-3), #1a1a2e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-dim);
+}
+
+.sidebar-course-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-thumb-placeholder { font-size: 1.4rem; }
+
+.sidebar-course-info { flex: 1; overflow: hidden; }
+
+.sidebar-course-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.sidebar-course-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.sidebar-category {
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-sep { color: var(--border-dim); }
+
+.status-pub  { color: #4ade80; }
+.status-draft { color: var(--white-dim); }
+
+/* Кнопка добавить урок */
+.btn-add-lesson {
+  margin: 16px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--gold-dim);
+  border: 1px dashed rgba(201,168,76,0.4);
+  border-radius: 10px;
+  padding: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-add-lesson:hover {
+  background: rgba(201,168,76,0.2);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.btn-add-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Список уроков */
+.lessons-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-dim) transparent;
+}
+
+/* Пустое состояние */
+.lessons-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  text-align: center;
+  opacity: 0.5;
+}
+
+.le-icon { font-size: 2.5rem; }
+
+.lessons-empty p {
+  font-size: 13px;
+  color: var(--white-dim);
+  line-height: 1.5;
+}
+
+/* Элемент урока в списке */
+.lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.lesson-item:hover {
+  background: var(--white-faint);
+  border-color: var(--border-dim);
+}
+
+.lesson-item--active {
+  background: var(--gold-dim) !important;
+  border-color: var(--border) !important;
+}
+
+.lesson-item--dragging {
+  opacity: 0.4;
+}
+
+.lesson-item--drag-over {
+  border-color: var(--gold) !important;
+  background: rgba(201,168,76,0.08) !important;
+}
+
+.lesson-item-drag {
+  font-size: 14px;
+  color: var(--border-dim);
+  cursor: grab;
+  padding: 2px 2px;
+  user-select: none;
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+
+.lesson-item:hover .lesson-item-drag { color: var(--white-dim); }
+
+.lesson-item-body { flex: 1; overflow: hidden; }
+
+.lesson-item-order {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+.lesson-item--active .lesson-item-order { color: var(--gold-light); }
+
+.lesson-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lesson-item-meta {
+  font-size: 10px;
+  color: var(--white-dim);
+  margin-top: 2px;
+}
+
+.lesson-item-delete {
+  background: none;
+  border: none;
+  color: var(--border-dim);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.lesson-item:hover .lesson-item-delete {
+  opacity: 1;
+  color: var(--white-dim);
+}
+
+.lesson-item-delete:hover {
+  background: rgba(239,68,68,0.15);
+  color: #f87171 !important;
+}
+
+/* Подвал сайдбара */
+.sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-dim);
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sf-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.sf-btn--ghost {
+  background: var(--white-faint);
+  border: 1px solid var(--border-dim);
+  color: var(--white-dim);
+}
+.sf-btn--ghost:hover { color: var(--white); border-color: var(--border-dim); }
+
+.sf-btn--publish {
+  background: var(--gold-dim);
+  border: 1px solid var(--border);
+  color: var(--gold);
+}
+.sf-btn--publish:hover { background: rgba(201,168,76,0.2); }
+
+.sf-btn--unpublish {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: #f87171;
+}
+.sf-btn--unpublish:hover { background: rgba(239,68,68,0.15); }
+
+/* ══════════════════════════════
+   MAIN EDITOR AREA
+══════════════════════════════ */
+
+.editor-main {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-dim) transparent;
+  background: transparent;
+}
+
+/* Пустое состояние */
+.editor-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 65px);
+  text-align: center;
+  padding: 40px;
+  gap: 16px;
+}
+
+.ee-icon {
+  font-size: 2.5rem;
+  color: var(--gold);
+  opacity: 0.4;
+  margin-bottom: 8px;
+  font-family: var(--font-serif);
+}
+
+.editor-empty h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.editor-empty p {
+  font-size: 15px;
+  color: var(--white-dim);
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+/* ── Редактор урока ───────────────────────────── */
+.lesson-editor {
+  padding: 40px 48px 60px;
+  min-height: calc(100vh - 65px);
+}
+
+/* Шапка редактора */
+.le-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  gap: 20px;
+}
+
+.le-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.le-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.le-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  padding-top: 8px;
+}
+
+/* ── Двухколоночный лейаут ───────────────────── */
+.le-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 28px;
+  align-items: start;
+}
+
+.le-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Секция ───────────────────────────────────── */
+.le-section {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: border-color var(--transition);
+}
+
+.le-section:hover { border-color: rgba(201,168,76,0.15); }
+
+.le-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Поля ─────────────────────────────────────── */
+.le-fields { display: flex; flex-direction: column; gap: 16px; }
+
+.le-field { display: flex; flex-direction: column; gap: 6px; }
+.le-field--grow { flex: 1; }
+.le-field--narrow { width: 120px; flex-shrink: 0; }
+
+.le-field-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+/* Видео превью */
+.video-preview-wrap { margin-top: 8px; }
+
+.video-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-3);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.vp-icon { font-size: 1.1rem; }
+
+.video-preview span {
+  flex: 1;
+  color: var(--white-dim);
+}
+
+.vp-open {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity var(--transition);
+}
+.vp-open:hover { opacity: 0.7; }
+
+/* ── Текстовое поле урока ─────────────────────── */
+.le-textarea {
+  min-height: 260px;
+  padding-left: 14px !important;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.le-textarea-hint {
+  font-size: 11px;
+  color: var(--white-dim);
+  text-align: right;
+  opacity: 0.6;
+}
+
+/* ══════════════════════════════
+   МАТЕРИАЛЫ
+══════════════════════════════ */
+
+.materials-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold-dim);
+  color: var(--gold);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  min-width: 20px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.materials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  min-height: 0;
+}
+
+/* Пустое состояние */
+.materials-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 12px;
+  background: var(--bg);
+  border: 1px dashed var(--border-dim);
+  border-radius: 8px;
+  font-size: 12px;
+  color: rgba(240, 237, 230, 0.3);
+  margin-bottom: 12px;
+}
+
+.materials-empty-icon {
+  font-size: 1rem;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* Элемент материала */
+.material-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.material-item:hover {
+  border-color: rgba(201, 168, 76, 0.2);
+  background: rgba(201, 168, 76, 0.02);
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.material-type-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+.material-info { flex: 1; overflow: hidden; }
+
+.material-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.material-type-label {
+  font-size: 10px;
+  color: var(--white-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.material-url-preview {
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(240, 237, 230, 0.35);
+  font-style: italic;
+}
+
+.material-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.material-item:hover .material-actions {
+  opacity: 1;
+}
+
+.material-btn {
+  background: none;
+  border: none;
+  color: var(--white-dim);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.material-btn--open {
+  color: var(--white-dim);
+  font-size: 13px;
+}
+
+.material-btn--open:hover {
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+
+.material-btn--delete:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+}
+
+/* Кнопка добавить материал */
+.btn-add-material {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1px dashed var(--border-dim);
+  border-radius: 8px;
+  color: var(--white-dim);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-add-material:hover {
+  border-color: rgba(201, 168, 76, 0.4);
+  color: var(--gold);
+  background: var(--gold-dim);
+}
+
+/* Форма добавления материала */
+.add-material-form {
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  animation: fadeSlideIn 0.3s ease;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Иконка — flex-сосед инпута, поэтому убираем лишний левый отступ */
+.add-material-form .mf-input-wrap {
+  background: var(--bg-2);
+}
+
+.add-material-form .mf-input {
+  padding-left: 30px;
+}
+
+.add-material-form .mf-icon {
+  padding: 0 8px 0 0px;
+  flex-shrink: 0;
+}
+
+.amf-type-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-2);
+  padding: 4px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.amf-tab {
+  flex: 1;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--white-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.amf-tab.active {
+  background: var(--gold);
+  color: #0a0a0f;
+}
+
+.amf-tab:hover:not(.active) {
+  background: var(--white-faint);
+  color: var(--white);
+}
+
+/* Зона загрузки файла внутри формы */
+.file-drop--compact {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.file-drop--compact .file-drop-content {
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Состояние: файл выбран */
+.file-drop--selected {
+  border-color: rgba(74, 222, 128, 0.4) !important;
+  background: rgba(74, 222, 128, 0.04) !important;
+  cursor: default;
+}
+
+/* Блок успешного выбора файла */
+.file-drop-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.fds-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #4ade80;
+  flex-shrink: 0;
+}
+
+.fds-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.fds-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4ade80;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fds-meta {
+  font-size: 10px;
+  color: rgba(74, 222, 128, 0.6);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.fds-remove {
+  background: none;
+  border: none;
+  color: rgba(74, 222, 128, 0.5);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  pointer-events: all;
+  transition: color 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+.fds-remove:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* Превью ссылки */
+.material-link-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(201, 168, 76, 0.06);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 8px;
+  margin-top: 6px;
+  animation: fadeSlideIn 0.25s ease;
+}
+
+.mlp-icon { font-size: 12px; flex-shrink: 0; }
+
+.mlp-domain {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mlp-label {
+  font-size: 10px;
+  color: rgba(201, 168, 76, 0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Поле ссылки */
+#materialLinkWrap .mf-input-wrap {
+  background: var(--bg-2);
+}
+
+#materialLinkWrap .mf-input {
+  padding-left: 40px;
+}
+
+#materialLinkWrap .mf-icon {
+  padding: 0 8px 0 0px;
+}
+
+.amf-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.amf-cancel, .amf-confirm {
+  flex: 1;
+  padding: 9px;
+  font-size: 12px;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+/* ══════════════════════════════
+   QUICK ACTIONS
+══════════════════════════════ */
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qa-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white-dim);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.qa-btn:hover {
+  background: var(--white-faint);
+  border-color: var(--border-dim);
+  color: var(--white);
+  transform: translateX(3px);
+}
+
+.qa-btn--danger:hover {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.2);
+  color: #f87171;
+}
+
+.qa-icon { font-size: 1rem; }
+
+/* ══════════════════════════════
+   ТОСТ УВЕДОМЛЕНИЯ
+══════════════════════════════ */
+
+.toast-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  pointer-events: all;
+  animation: toastIn 0.35s cubic-bezier(0.4,0,0.2,1);
+  max-width: 340px;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(10px) scale(0.95); }
+}
+
+.toast--success {
+  background: rgba(20, 40, 20, 0.95);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: #4ade80;
+}
+
+.toast--error {
+  background: rgba(40, 15, 15, 0.95);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #f87171;
+}
+
+.toast--info {
+  background: rgba(15, 15, 30, 0.95);
+  border: 1px solid var(--border);
+  color: var(--gold);
+}
+
+/* ══════════════════════════════
+   МОДАЛЬНЫЕ ОКНА (общие доп.)
+══════════════════════════════ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.modal-active {
+  display: flex;
+  animation: modalBgIn 0.25s ease;
+}
+
+@keyframes modalBgIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  padding: 36px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: modalBoxIn 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes modalBoxIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: var(--white-faint);
+  border: 1px solid var(--border-dim);
+  color: var(--white-dim);
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.modal-close:hover {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+  border-color: rgba(239,68,68,0.3);
+}
+
+.modal-brand {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--white-dim);
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 14px;
+  color: var(--white-dim);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modal-form { display: flex; flex-direction: column; gap: 16px; }
+
+.mf-group { display: flex; flex-direction: column; gap: 6px; }
+
+.mf-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--white-dim);
+}
+
+.mf-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+
+.mf-input-wrap:focus-within { border-color: var(--gold); }
+
+.mf-icon {
+  padding: 0 12px 0 0px;
+  color: var(--gold);
+  font-size: 13px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.mf-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: 12px 14px 12px 40px;
+}
+
+.mf-input::placeholder { color: rgba(240,237,230,0.25); }
+.mf-input.error { border-color: #f87171 !important; }
+
+.modal-orb-1 {
+  position: absolute;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(201,168,76,0.08), transparent 70%);
+  border-radius: 50%;
+  bottom: -60px; right: -60px;
+  pointer-events: none;
+}
+
+.modal-orb-2 {
+  position: absolute;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(99,102,241,0.05), transparent 70%);
+  border-radius: 50%;
+  top: -40px; left: -40px;
+  pointer-events: none;
+}
+
+body.modal-open { overflow: hidden; }
+
+/* ── Сохранение-индикатор ─────────────────────── */
+.save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--white-dim);
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--white-faint);
+  border: 1px solid var(--border-dim);
+  transition: all 0.3s ease;
+}
+
+.save-indicator.saving {
+  color: var(--gold);
+  border-color: var(--border);
+}
+
+.save-indicator.saved {
+  color: #4ade80;
+  background: rgba(74,222,128,0.08);
+  border-color: rgba(74,222,128,0.25);
+}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .editor-layout { grid-template-columns: 280px 1fr; }
+  .le-body { grid-template-columns: 1fr; }
+  .le-col--side { grid-row: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .lesson-editor { padding: 32px 28px 48px; }
+}
+
+@media (max-width: 768px) {
+  .edit-body { overflow: auto; }
+  .editor-layout { grid-template-columns: 1fr; height: auto; }
+  .editor-sidebar {
+    position: fixed;
+    left: 0; bottom: 0; top: auto;
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    border-right: none;
+    border-top: 1px solid var(--border-dim);
+    z-index: 50;
+  }
+  .editor-main { padding-bottom: 200px; }
+  .le-col--side { grid-template-columns: 1fr; }
+  .le-field-row { flex-direction: column; }
+  .le-field--narrow { width: 100%; }
+  .lesson-editor { padding: 24px 20px 40px; }
+  .nav-breadcrumb { display: none; }
+}
+/* ══════════════════════════════════════════════
+   MARKDOWN TOOLBAR — добавить в конец teacher_course_edit.css
+   ══════════════════════════════════════════════ */
+
+/* Бейдж «Markdown» в заголовке секции */
+.md-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-left: 4px;
+}
+
+/* ── Тулбар ─────────────────────────────────── */
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  padding: 8px 10px;
+}
+
+.md-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.md-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border-dim);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.md-toolbar-right {
+  margin-left: auto;
+}
+
+/* Кнопки тулбара */
+.md-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 7px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white-dim);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.md-btn:hover {
+  background: rgba(201,168,76,0.1);
+  border-color: rgba(201,168,76,0.25);
+  color: var(--gold);
+}
+
+.md-btn:active {
+  transform: scale(0.94);
+  background: rgba(201,168,76,0.18);
+}
+
+.md-btn--bold { font-weight: 800; }
+.md-btn--italic { font-style: italic; }
+
+/* ── Вкладки Editor / Preview ───────────────── */
+.md-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.md-tab {
+  padding: 4px 12px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--white-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.md-tab--active {
+  background: var(--gold);
+  color: #0a0a0f;
+}
+
+.md-tab:hover:not(.md-tab--active) {
+  color: var(--white);
+  background: var(--white-faint);
+}
+
+/* Textarea — убрать верхние скругления (тулбар сверху) */
+#editorWrap {
+  border-radius: 0 0 10px 10px !important;
+  border-top: none !important;
+}
+
+.mf-textarea-wrap .le-textarea {
+  min-height: 280px;
+  padding: 16px 14px !important;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.75;
+  font-family: 'Courier New', Consolas, monospace;
+  color: var(--white);
+}
+
+/* ── Превью Markdown ─────────────────────────── */
+.md-preview {
+  min-height: 280px;
+  padding: 20px 20px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-radius: 0 0 10px 10px;
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-y: auto;
+}
+
+.md-preview-empty {
+  color: rgba(240,237,230,0.3);
+  font-style: italic;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* Типографика markdown в превью редактора */
+.md-preview h1,
+.md-preview h2,
+.md-preview h3,
+.md-preview h4 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--white);
+  margin: 1.4em 0 0.5em;
+  line-height: 1.2;
+}
+
+.md-preview h1 { font-size: 1.8rem; color: var(--gold); }
+.md-preview h2 { font-size: 1.4rem; border-bottom: 1px solid var(--border-dim); padding-bottom: 6px; }
+.md-preview h3 { font-size: 1.15rem; }
+.md-preview h4 { font-size: 1rem; }
+
+.md-preview p { margin: 0.75em 0; }
+
+.md-preview strong { color: var(--white); font-weight: 700; }
+.md-preview em     { color: rgba(240,237,230,0.85); font-style: italic; }
+
+.md-preview a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s;
+}
+.md-preview a:hover { opacity: 0.75; }
+
+.md-preview ul,
+.md-preview ol {
+  padding-left: 1.5em;
+  margin: 0.75em 0;
+}
+.md-preview li { margin: 0.3em 0; }
+
+.md-preview blockquote {
+  border-left: 3px solid var(--gold);
+  margin: 1em 0;
+  padding: 8px 16px;
+  background: var(--gold-dim);
+  border-radius: 0 8px 8px 0;
+  color: rgba(240,237,230,0.8);
+  font-style: italic;
+}
+
+.md-preview code {
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.88em;
+  color: var(--gold);
+}
+
+.md-preview pre {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.md-preview pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #a8d8a8;
+  font-size: 13px;
+}
+
+.md-preview hr {
+  border: none;
+  border-top: 1px solid var(--border-dim);
+  margin: 1.5em 0;
+}
+
+/* Подсказка под textarea */
+.le-textarea-hint {
+  font-size: 11px;
+  color: var(--white-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  opacity: 0.6;
+  margin-top: 6px;
+}
+
+.md-hint-sep { opacity: 0.4; }
+
+.md-hint-link {
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  text-decoration: none;
+}
+.md-hint-link:hover { opacity: 1; }
+
+/* ── Шпаргалка Markdown ──────────────────────── */
+.md-cheatsheet-section { padding: 20px; }
+
+.md-cheatsheet {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.md-cs-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.md-cs-row:hover { background: var(--white-faint); }
+
+.md-cs-row code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  min-width: 100px;
+  display: inline-block;
+}
+
+.md-cs-row span {
+  font-size: 11px;
+  color: var(--white-dim);
+}

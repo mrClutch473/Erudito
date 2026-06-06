@@ -1,0 +1,1174 @@
+/* ============================
+   ERUDITO — TEACHER COURSES
+   ============================ */
+
+/* ── Фон страницы ─────────────────────────────── */
+.tc-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Основной контент ─────────────────────────── */
+.tc-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 32px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Шапка страницы ───────────────────────────── */
+.tc-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.tc-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.tc-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+
+.tc-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.tc-sub {
+  font-size: 15px;
+  color: var(--white-dim);
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+.btn-icon {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* ── Статистика ───────────────────────────────── */
+.tc-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.tc-stat-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  transition: border-color var(--transition), transform var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.tc-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.tc-stat-card:hover {
+  border-color: var(--border);
+  transform: translateY(-2px);
+}
+
+.tc-stat-card:hover::before {
+  opacity: 1;
+}
+
+/* Золотая карточка средней оценки */
+.tc-stat-card--gold {
+  border-color: rgba(201, 168, 76, 0.25);
+}
+
+.tc-stat-card--gold::before {
+  background: linear-gradient(90deg, var(--gold), rgba(201,168,76,0.2));
+  opacity: 1;
+}
+
+.tsc-value {
+  font-family: var(--font-serif);
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.tsc-value--rating {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.tsc-star {
+  font-size: 1.4rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.tsc-label {
+  font-size: 12px;
+  color: var(--white-dim);
+  letter-spacing: 0.05em;
+}
+
+/* ── Сообщения ────────────────────────────────── */
+.tc-messages {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tc-message {
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  animation: slideDown 0.3s ease;
+}
+
+.tc-message--success {
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  color: #4ade80;
+}
+
+.tc-message--error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Грид курсов ──────────────────────────────── */
+.tc-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* ── Карточка курса ───────────────────────────── */
+.tc-course-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.tc-course-card:hover {
+  border-color: var(--border);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Бейдж статуса */
+.tcc-status {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 2;
+}
+
+.tcc-status--published {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.tcc-status--draft {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--white-dim);
+  border: 1px solid var(--border-dim);
+}
+
+/* Превью */
+.tcc-thumb {
+  height: 140px;
+  background: linear-gradient(135deg, var(--bg-3), #1a1a2e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.tcc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tcc-thumb-placeholder {
+  font-size: 3rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+}
+
+.tcc-category {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(10, 10, 15, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Тело */
+.tcc-body {
+  padding: 20px 20px 0;
+}
+
+.tcc-title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.tcc-desc {
+  font-size: 13px;
+  color: var(--white-dim);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.tcc-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--white-dim);
+  letter-spacing: 0.05em;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+/* Действия */
+.tcc-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px;
+}
+
+.tcc-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.tcc-btn--edit {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid var(--border);
+}
+
+.tcc-btn--edit:hover {
+  background: rgba(201, 168, 76, 0.25);
+  transform: translateY(-1px);
+}
+
+.tcc-btn--delete {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.tcc-btn--delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  transform: translateY(-1px);
+}
+
+/* ── Пустое состояние ─────────────────────────── */
+.tc-empty {
+  text-align: center;
+  padding: 100px 32px;
+}
+
+.tc-empty-icon {
+  font-size: 4rem;
+  margin-bottom: 24px;
+  filter: grayscale(0.3);
+}
+
+.tc-empty h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+
+.tc-empty p {
+  font-size: 15px;
+  color: var(--white-dim);
+  margin-bottom: 32px;
+}
+
+
+/* ════════════════════════════════════
+   МОДАЛЬНОЕ ОКНО СОЗДАНИЯ КУРСА
+   ════════════════════════════════════ */
+
+.modal-box--course {
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.modal-box--small {
+  max-width: 420px;
+}
+
+/* ── Шаги ─────────────────────────── */
+.course-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 32px;
+}
+
+.cs-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-direction: column;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.cs-step.active {
+  opacity: 1;
+}
+
+.cs-step.done {
+  opacity: 0.7;
+}
+
+.cs-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white-dim);
+  transition: all 0.3s ease;
+}
+
+.cs-step.active .cs-dot {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0a0a0f;
+  box-shadow: 0 0 16px rgba(201,168,76,0.4);
+}
+
+.cs-step.done .cs-dot {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.cs-step span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--white-dim);
+}
+
+.cs-step.active span { color: var(--gold); }
+
+.cs-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-dim);
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cs-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.cs-line.filled::after {
+  transform: scaleX(1);
+}
+
+/* ── Панели шагов ─────────────────── */
+.course-step-panel {
+  display: none;
+  animation: panelIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.course-step-panel.active {
+  display: block;
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Навигация шагов ──────────────── */
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-dim);
+}
+
+/* ── Выбор категории ──────────────── */
+.category-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.cat-option input {
+  display: none;
+}
+
+.cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--white-dim);
+}
+
+.cat-icon { font-size: 1.6rem; }
+
+.cat-option input:checked + .cat-card {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.cat-card:hover {
+  border-color: var(--border);
+  background: rgba(255,255,255,0.04);
+}
+
+/* ── Выбор уровня ─────────────────── */
+.level-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.level-option input { display: none; }
+
+.level-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 13px;
+  color: var(--white-dim);
+}
+
+.level-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.level-dot--green  { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+.level-dot--yellow { background: var(--gold); box-shadow: 0 0 8px rgba(201,168,76,0.5); }
+.level-dot--red    { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.5); }
+
+.level-option input:checked + .level-card {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.level-card:hover { border-color: var(--border); }
+
+/* ── Загрузка обложки ─────────────── */
+.file-drop {
+  background: var(--bg-2);
+  border: 1px dashed rgba(201,168,76,0.3);
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.file-drop:hover, .file-drop.drag-over {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+
+.file-drop input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.file-drop-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.file-drop-icon { font-size: 2rem; }
+
+.file-drop-text {
+  font-size: 13px;
+  color: var(--white-dim);
+}
+
+.file-drop-text u { color: var(--gold); }
+
+.file-drop-hint {
+  font-size: 11px;
+  color: rgba(240,237,230,0.3);
+}
+
+.file-preview {
+  position: relative;
+}
+
+.file-preview img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.file-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Textarea в форме ─────────────── */
+.mf-textarea-wrap {
+  align-items: flex-start !important;
+}
+
+.mf-textarea {
+  padding-left: 14px !important;
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* ── Publish toggle ───────────────── */
+.publish-toggle {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 4px;
+}
+
+.pt-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.pt-label input { display: none; }
+
+.pt-switch {
+  width: 40px;
+  height: 22px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.pt-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--white-dim);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.pt-label input:checked ~ .pt-switch {
+  background: rgba(201,168,76,0.2);
+  border-color: var(--gold);
+}
+
+.pt-label input:checked ~ .pt-switch::after {
+  transform: translateX(18px);
+  background: var(--gold);
+}
+
+.pt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pt-text span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+}
+
+.pt-text small {
+  font-size: 11px;
+  color: var(--white-dim);
+}
+
+/* ── Удаление ─────────────────────── */
+.delete-icon {
+  width: 56px; height: 56px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #f87171;
+  margin: 0 auto 20px;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-actions .btn-outline,
+.delete-actions .btn-delete {
+  flex: 1;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-delete {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #f87171;
+  display: flex;
+  align-items: center;
+}
+
+.btn-delete:hover {
+  background: rgba(239,68,68,0.22);
+  transform: translateY(-1px);
+}
+
+
+/* ════════════════════════════════════════════════
+   СЕКЦИЯ: ОБРАТНАЯ СВЯЗЬ СТУДЕНТОВ
+   ════════════════════════════════════════════════ */
+
+/* ── Шапка секции ─────────────────────────────── */
+.tc-feedback {
+  margin-top: 72px;
+}
+
+.tcf-header {
+  margin-bottom: 36px;
+}
+
+.tcf-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  margin: 10px 0 8px;
+}
+
+.tcf-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.tcf-sub {
+  font-size: 14px;
+  color: var(--white-dim);
+  line-height: 1.6;
+}
+
+/* ── Грид пер-курсовых карточек ───────────────── */
+.tcf-courses-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.tcf-crc {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 18px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.tcf-crc::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.tcf-crc:hover {
+  border-color: var(--border);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+}
+
+.tcf-crc:hover::before {
+  opacity: 1;
+}
+
+/* Шапка карточки: миниатюра + название */
+.tcf-crc-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tcf-crc-thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--bg-3), #1a1a2e);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  border: 1px solid var(--border-dim);
+}
+
+.tcf-crc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tcf-crc-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.35;
+  margin-bottom: 3px;
+}
+
+.tcf-crc-count {
+  font-size: 11px;
+  color: var(--white-dim);
+  letter-spacing: 0.04em;
+}
+
+/* Большой рейтинг */
+.tcf-crc-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tcf-crc-num {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.tcf-crc-stars {
+  display: flex;
+  gap: 2px;
+}
+
+/* Звёзды (общий компонент) */
+.tcf-star {
+  font-size: 14px;
+  color: rgba(201,168,76,0.2);
+  transition: color 0.2s ease;
+}
+
+.tcf-star--on {
+  color: var(--gold);
+}
+
+/* Мини-барчарт распределения */
+.tcf-crc-dist {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tcf-dist-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 18px;
+  align-items: center;
+  gap: 8px;
+}
+
+.tcf-dist-label {
+  font-size: 10px;
+  color: var(--white-dim);
+  text-align: right;
+  letter-spacing: 0.03em;
+}
+
+.tcf-dist-track {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tcf-dist-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), rgba(201,168,76,0.6));
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+.tcf-dist-count {
+  font-size: 10px;
+  color: var(--white-dim);
+  text-align: center;
+}
+
+/* Ссылка на курс */
+.tcf-crc-link {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.tcf-crc-link:hover { opacity: 1; }
+
+
+/* ── Блок последних отзывов ───────────────────── */
+.tcf-reviews-wrap {
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.tcf-reviews-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.tcf-reviews-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.04em;
+}
+
+.tcf-reviews-total {
+  font-size: 11px;
+  color: var(--white-dim);
+  background: var(--bg-3);
+  border: 1px solid var(--border-dim);
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.tcf-reviews-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Одна карточка отзыва */
+.tcf-review-card {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border-dim);
+  transition: background var(--transition);
+  animation: tcfRevealCard 0.4s ease both;
+}
+
+@keyframes tcfRevealCard {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tcf-review-card:last-child {
+  border-bottom: none;
+}
+
+.tcf-review-card:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.tcf-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.tcf-review-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tcf-review-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dim), rgba(201,168,76,0.08));
+  border: 1px solid rgba(201,168,76,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.tcf-review-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tcf-review-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.tcf-review-course-tag {
+  font-size: 10px;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.2);
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+  display: inline-block;
+}
+
+.tcf-review-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tcf-review-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tcf-review-rating-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white-dim);
+  margin-left: 6px;
+}
+
+.tcf-review-date {
+  font-size: 11px;
+  color: rgba(240,237,230,0.35);
+  letter-spacing: 0.03em;
+}
+
+.tcf-review-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--white-dim);
+  margin: 0;
+  padding-left: 50px; /* выравнивание под аватар */
+}
+
+.tcf-review-text--empty {
+  font-style: italic;
+  opacity: 0.45;
+}
+
+/* ── Пустое состояние секции ──────────────────── */
+.tcf-empty {
+  text-align: center;
+  padding: 64px 32px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+}
+
+.tcf-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  filter: grayscale(0.2);
+}
+
+.tcf-empty-title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--white);
+  margin: 0 0 8px;
+}
+
+.tcf-empty-sub {
+  font-size: 13px;
+  color: var(--white-dim);
+  margin: 0;
+  line-height: 1.6;
+}
+
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 1100px) {
+  .tc-stats { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .tc-header { flex-direction: column; align-items: flex-start; }
+  .tc-courses-grid { grid-template-columns: 1fr; }
+  .category-picker { grid-template-columns: 1fr; }
+  .tc-main { padding: 100px 20px 60px; }
+  .tc-stats { grid-template-columns: repeat(2, 1fr); }
+  .tcf-courses-row { grid-template-columns: 1fr; }
+  .tcf-review-text { padding-left: 0; }
+  .tcf-review-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .tcf-review-right { align-items: flex-start; }
+}

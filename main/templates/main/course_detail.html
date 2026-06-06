@@ -1,0 +1,685 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ course.title }} — Erudito</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/course_detail.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ═══ NAVBAR ═══════════════════════════════════════════ -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="logo"><span class="logo-e">E</span>rudito</a>
+      <ul class="nav-links">
+        {% if user.is_authenticated and user.is_teacher %}
+          <li><a href="{% url 'teacher_courses' %}">Мои курсы</a></li>
+        {% endif %}
+        {% if user.is_authenticated and user.is_student %}
+          <li><a href="{% url 'student_dashboard' %}">Мои курсы</a></li>
+        {% endif %}
+        <li><a href="{% url 'courses_catalog' %}" style="color: var(--gold)">Каталог</a></li>
+      </ul>
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          {% if user.is_teacher %}
+            <a href="{% url 'teacher_courses' %}" class="btn-ghost">{{ user.first_name }} {{ user.last_name }}</a>
+          {% else %}
+            <a href="{% url 'student_dashboard' %}" class="btn-ghost">{{ user.first_name }} {{ user.last_name }}</a>
+          {% endif %}
+          <a href="/logout/" class="btn-gold">Выйти</a>
+        {% else %}
+          <a href="#" class="btn-ghost" id="btnLogin">Войти</a>
+          <a href="#" class="btn-gold" id="btnRegister">Зарегистрироваться</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ ФОН ════════════════════════════════════════════════ -->
+  <div class="tc-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <main class="cd-main">
+
+    <!-- ═══ HERO: 2 колонки ═══════════════════════════════════ -->
+    <div class="cd-hero">
+
+      <!-- ─── ЛЕВАЯ ЧАСТЬ: информация ────────────────────────── -->
+      <div class="cd-content">
+
+        <!-- Хлебные крошки -->
+        <div class="cd-breadcrumb reveal">
+          <a href="/">Главная</a>
+          <span class="cd-breadcrumb-sep">›</span>
+          <a href="{% url 'courses_catalog' %}">Каталог</a>
+          <span class="cd-breadcrumb-sep">›</span>
+          <a href="{% url 'courses_catalog' %}?category={{ course.category }}">
+            {{ course.get_category_display }}
+          </a>
+          <span class="cd-breadcrumb-sep">›</span>
+          <span class="cd-breadcrumb-current">{{ course.title }}</span>
+        </div>
+
+        <!-- Бейджи -->
+        <div class="cd-hero-badges reveal">
+          <span class="cd-badge cd-badge--category">{{ course.get_category_display }}</span>
+          <span class="cd-badge cd-badge--level-{{ course.level }}">{{ course.get_level_display }}</span>
+          {% if course.enrollments.count > 50 %}
+            <span class="cd-badge cd-badge--hot">🔥 Хит</span>
+          {% endif %}
+        </div>
+
+        <!-- Заголовок -->
+        <h1 class="cd-hero-title reveal">{{ course.title }}</h1>
+
+        <!-- Описание -->
+        <p class="cd-hero-desc reveal">{{ course.description }}</p>
+
+        <!-- Мета: учитель + статистика -->
+        <div class="cd-hero-meta reveal">
+          <div class="cd-meta-teacher">
+            <div class="cd-meta-avatar">{{ course.teacher.first_name|first }}</div>
+            <div class="cd-meta-teacher-info">
+              <span class="cd-meta-teacher-name">{{ course.teacher.first_name }} {{ course.teacher.last_name }}</span>
+              <span class="cd-meta-teacher-role">Преподаватель</span>
+            </div>
+          </div>
+
+          <div class="cd-meta-divider"></div>
+
+          <div class="cd-meta-stat">
+            <span class="cd-meta-stat-icon">📖</span>
+            <span>{{ lessons.count }} урок{{ lessons.count|pluralize:",,ов" }}</span>
+          </div>
+
+          <div class="cd-meta-divider"></div>
+
+          <div class="cd-meta-stat">
+            <span class="cd-meta-stat-icon">👥</span>
+            <span>{{ students_count }} студент{{ students_count|pluralize:",,ов" }}</span>
+          </div>
+
+          {% if avg_rating %}
+          <div class="cd-meta-divider"></div>
+          <div class="cd-meta-stat cd-meta-stat--rating">
+            <span class="cd-meta-stat-icon">★</span>
+            <span class="cd-meta-rating-val">{{ avg_rating|floatformat:1 }}</span>
+            <span class="cd-meta-rating-count">({{ reviews_count }})</span>
+          </div>
+          {% endif %}
+
+          {% if total_duration %}
+          <div class="cd-meta-divider"></div>
+          <div class="cd-meta-stat">
+            <span class="cd-meta-stat-icon">⏱</span>
+            <span>{{ total_duration }} мин</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- ─── Введение ──────────────────────────────────── -->
+        {% if course.introduction %}
+        <div class="cd-section reveal">
+          <h2 class="cd-section-title">Введение</h2>
+          <div class="cd-intro-box">
+            <div class="cd-intro-title">{{ course.introduction.title }}</div>
+            <div class="cd-intro-text">{{ course.introduction.text }}</div>
+            {% if intro_embed_url %}
+            <div class="cd-intro-video">
+              <iframe
+                src="{{ intro_embed_url }}"
+                allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ─── Что ты узнаешь ─────────────────────────────── -->
+        <div class="cd-section reveal">
+          <h2 class="cd-section-title">Что ты узнаешь</h2>
+          <div class="cd-learn-grid">
+            {% for lesson in lessons %}
+            <div class="cd-learn-item">
+              <div class="cd-learn-check">✓</div>
+              <span>{{ lesson.title }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ─── Программа курса ────────────────────────────── -->
+        <div class="cd-section reveal">
+          <h2 class="cd-section-title">Программа курса</h2>
+          <div class="cd-curriculum-header">
+            <span class="cd-curriculum-meta">
+              {{ lessons.count }} урок{{ lessons.count|pluralize:",,ов" }}
+              {% if total_duration %} · {{ total_duration }} мин{% endif %}
+            </span>
+          </div>
+          <div class="cd-curriculum" id="curriculumList">
+            {% for lesson in lessons %}
+            <div class="cd-lesson-item {% if is_enrolled and lesson.pk in done_lesson_ids %}is-done{% endif %}"
+                 data-lesson="{{ forloop.counter }}">
+              <button class="cd-lesson-toggle" type="button" onclick="toggleLesson(this)">
+                <div class="cd-lesson-num">
+                  {% if is_enrolled and lesson.pk in done_lesson_ids %}
+                    ✓
+                  {% else %}
+                    {{ forloop.counter }}
+                  {% endif %}
+                </div>
+                <span class="cd-lesson-title">{{ lesson.title }}</span>
+                <div class="cd-lesson-meta">
+                  {% if lesson.duration %}
+                    <span class="cd-lesson-duration">{{ lesson.duration }} мин</span>
+                  {% endif %}
+                  {% if lesson.video_url %}
+                    <span style="font-size:12px;" title="Видео">🎬</span>
+                  {% endif %}
+                  {% if lesson.text %}
+                    <span style="font-size:12px;" title="Текстовый материал">📄</span>
+                  {% endif %}
+                  <span class="cd-lesson-chevron">▾</span>
+                </div>
+              </button>
+              {% if lesson.text or lesson.materials.exists %}
+              <div class="cd-lesson-body">
+                <div class="cd-lesson-body-inner">
+                  {% if lesson.text %}
+                    <p class="cd-lesson-desc">{{ lesson.text|truncatechars:200 }}</p>
+                  {% endif %}
+                  {% if lesson.materials.exists %}
+                    <div class="cd-lesson-materials">
+                      {% for mat in lesson.materials.all %}
+                        <span class="cd-material-chip">
+                          {% if mat.type == 'pdf' %}📎{% elif mat.type == 'link' %}🔗{% else %}📁{% endif %}
+                          {{ mat.title }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            {% empty %}
+              <div style="text-align:center; padding: 40px; color: var(--white-dim); font-size: 14px;">
+                Преподаватель ещё не добавил уроки
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ─── Преподаватель ──────────────────────────────── -->
+        <div class="cd-section reveal">
+          <h2 class="cd-section-title">Преподаватель</h2>
+          <div class="cd-teacher-card">
+            <div class="cd-teacher-avatar-lg">{{ course.teacher.first_name|first }}</div>
+            <div class="cd-teacher-info">
+              <div class="cd-teacher-name">
+                {{ course.teacher.first_name }} {{ course.teacher.last_name }}
+              </div>
+              <span class="cd-teacher-role-badge">✦ Преподаватель</span>
+              <div class="cd-teacher-stats">
+                <div class="cd-teacher-stat">
+                  <span>📚</span>
+                  <span>{{ teacher_courses_count }} курс{{ teacher_courses_count|pluralize:",,ов" }}</span>
+                </div>
+                <div class="cd-teacher-stat">
+                  <span>👥</span>
+                  <span>{{ teacher_students_count }} студент{{ teacher_students_count|pluralize:",,ов" }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Отзывы студентов ───────────────────────────── -->
+        <div class="cd-section reveal">
+          <h2 class="cd-section-title">Отзывы студентов</h2>
+
+          {% if reviews_count > 0 %}
+
+            <!-- Сводка рейтинга -->
+            <div class="cd-rating-hero">
+
+              <!-- Большой рейтинг -->
+              <div class="cd-rating-big">
+                <span class="cd-rating-number">{{ avg_rating|floatformat:1 }}</span>
+                <div class="cd-rating-stars-big">
+                  {% for i in "12345" %}
+                    <span class="cd-rstar {% if forloop.counter <= avg_rating_int %}cd-rstar--full{% endif %}">★</span>
+                  {% endfor %}
+                </div>
+                <span class="cd-rating-count">{{ reviews_count }} отзыв{{ reviews_count|pluralize:",,ов" }}</span>
+              </div>
+
+              <!-- Распределение по звёздам -->
+              <div class="cd-rating-dist">
+                {% for item in rating_distribution %}
+                <div class="cd-dist-row">
+                  <span class="cd-dist-label">{{ item.stars }}★</span>
+                  <div class="cd-dist-bar-wrap">
+                    <div class="cd-dist-bar" data-pct="{{ item.pct }}" style="width: 0%"></div>
+                  </div>
+                  <span class="cd-dist-count">{{ item.count }}</span>
+                </div>
+                {% endfor %}
+              </div>
+
+            </div>
+            <!-- /cd-rating-hero -->
+
+            <!-- Карточки отзывов -->
+            <div class="cd-reviews-list" id="reviewsList">
+              {% for review in reviews %}
+              <div class="cd-review-card{% if forloop.counter > 3 %} cd-review-card--hidden{% endif %}">
+
+                <div class="cd-review-header">
+                  <!-- Автор -->
+                  <div class="cd-review-author">
+                    <div class="cd-review-avatar">{{ review.student.first_name|first }}</div>
+                    <div class="cd-review-author-info">
+                      <span class="cd-review-author-name">
+                        {{ review.student.first_name }} {{ review.student.last_name }}
+                      </span>
+                      <span class="cd-review-author-label">Студент курса</span>
+                    </div>
+                  </div>
+                  <!-- Оценка + дата -->
+                  <div class="cd-review-right">
+                    <div class="cd-review-stars-wrap">
+                      <div class="cd-review-stars">
+                        {% for i in "12345" %}
+                          <span class="cd-rev-star {% if forloop.counter <= review.rating %}cd-rev-star--on{% endif %}">★</span>
+                        {% endfor %}
+                      </div>
+                      <span class="cd-review-rating-num">{{ review.rating }}.0</span>
+                    </div>
+                    <span class="cd-review-date">{{ review.created_at|date:"d E Y" }}</span>
+                  </div>
+                </div>
+
+                {% if review.text %}
+                <p class="cd-review-text">{{ review.text }}</p>
+                {% else %}
+                <p class="cd-review-text cd-review-text--empty">Студент не оставил текстового комментария</p>
+                {% endif %}
+
+              </div>
+              {% endfor %}
+            </div>
+            <!-- /cd-reviews-list -->
+
+            {% if reviews_count > 3 %}
+            <button class="cd-reviews-more-btn" id="reviewsMoreBtn" onclick="loadMoreReviews()">
+              <span class="cd-reviews-more-icon">↓</span>
+              Показать ещё отзывы
+              <span class="cd-reviews-more-count" id="reviewsMoreCount">({{ reviews_count|add:"-3" }})</span>
+            </button>
+            {% endif %}
+
+          {% else %}
+
+            <!-- Пустое состояние -->
+            <div class="cd-reviews-empty">
+              <span class="cd-reviews-empty-icon">💬</span>
+              <p class="cd-reviews-empty-title">Пока нет отзывов</p>
+              <p class="cd-reviews-empty-sub">Станьте первым, кто пройдёт курс и оставит свой отзыв</p>
+            </div>
+
+          {% endif %}
+        </div>
+        <!-- /отзывы -->
+
+      </div>
+      <!-- ─── конец левой части ─────────────────────────────── -->
+
+
+      <!-- ─── ПРАВАЯ ЧАСТЬ: sticky карточка ─────────────────── -->
+      <div class="cd-sidebar reveal">
+        <div class="cd-card">
+
+          <!-- Превью -->
+          <div class="cd-card-thumb">
+            {% if course.thumbnail %}
+              <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+            {% else %}
+              <div class="cd-thumb-placeholder-lg">
+                {% if course.category == 'dev' %}💻
+                {% elif course.category == 'design' %}🎨
+                {% elif course.category == 'data' %}📊
+                {% else %}📚{% endif %}
+              </div>
+            {% endif %}
+            <div class="cd-card-thumb-overlay"></div>
+          </div>
+
+          <!-- Тело -->
+          <div class="cd-card-body">
+
+            <!-- ★ Рейтинг (крупный блок, если есть отзывы) -->
+            {% if avg_rating %}
+            <div class="cd-card-rating-block">
+              <span class="cd-card-rating-num">{{ avg_rating|floatformat:1 }}</span>
+              <div class="cd-card-rating-right">
+                <div class="cd-card-rating-stars">
+                  {% for i in "12345" %}
+                    <span class="cd-card-rstar {% if forloop.counter <= avg_rating_int %}cd-card-rstar--on{% endif %}">★</span>
+                  {% endfor %}
+                </div>
+                <span class="cd-card-rating-label">
+                  {{ reviews_count }} отзыв{{ reviews_count|pluralize:",,ов" }}
+                </span>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Статы -->
+            <div class="cd-card-stats">
+              <div class="cd-card-stat">
+                <span class="cd-card-stat-icon">📖</span>
+                <span class="cd-card-stat-value">{{ lessons.count }}</span>
+                <span class="cd-card-stat-label">Уроков</span>
+              </div>
+              <div class="cd-card-stat">
+                <span class="cd-card-stat-icon">👥</span>
+                <span class="cd-card-stat-value">{{ students_count }}</span>
+                <span class="cd-card-stat-label">Студентов</span>
+              </div>
+              <div class="cd-card-stat">
+                <span class="cd-card-stat-icon">⏱</span>
+                <span class="cd-card-stat-value">{{ total_duration|default:"—" }}</span>
+                <span class="cd-card-stat-label">Минут</span>
+              </div>
+              <div class="cd-card-stat">
+                <span class="cd-card-stat-icon">
+                  {% if course.level == 'beginner' %}🟢
+                  {% elif course.level == 'intermediate' %}🟡
+                  {% else %}🔴{% endif %}
+                </span>
+                <span class="cd-card-stat-value" style="font-size: 0.85rem;">
+                  {{ course.get_level_display }}
+                </span>
+                <span class="cd-card-stat-label">Уровень</span>
+              </div>
+            </div>
+
+            <div class="cd-card-divider"></div>
+
+            <!-- Прогресс (если записан) -->
+            {% if is_enrolled and enrollment %}
+            <div class="cd-card-progress">
+              <div class="cd-card-progress-header">
+                <span>Твой прогресс</span>
+                <span class="cd-card-progress-pct">{{ enrollment.progress }}%</span>
+              </div>
+              <div class="cd-card-progress-bar">
+                <div class="cd-card-progress-fill" data-width="{{ enrollment.progress }}"></div>
+              </div>
+              <div class="cd-card-progress-sub">
+                {{ enrollment.lessons_done }} из {{ lessons.count }} уроков пройдено
+              </div>
+            </div>
+            <div class="cd-card-divider"></div>
+            {% endif %}
+
+            <!-- CTA кнопки -->
+            <div class="cd-cta-wrap">
+
+              {% if user.is_authenticated and user.is_student %}
+                {% if is_enrolled %}
+                  <div class="cd-btn-enroll cd-btn-enroll--enrolled">
+                    ✓ Вы уже записаны на курс
+                  </div>
+                  <a href="{% url 'course_learn' course.pk next_lesson_id %}" class="cd-btn-dashboard">
+                    📚 Перейти к обучению
+                  </a>
+                  <button class="cd-btn-unenroll" onclick="openUnenrollModal()">
+                    Отписаться от курса
+                  </button>
+                {% else %}
+                  <button class="cd-btn-enroll" id="enrollBtn" onclick="enrollCourse({{ course.pk }})">
+                    <span class="cd-btn-enroll-icon">✦</span>
+                    Записаться на курс
+                  </button>
+                  <a href="{% url 'courses_catalog' %}" class="cd-btn-dashboard">
+                    ← Вернуться в каталог
+                  </a>
+                {% endif %}
+
+              {% elif user.is_authenticated and user.is_teacher %}
+                <div class="cd-btn-enroll cd-btn-enroll--enrolled" style="background: var(--gold-dim); color: var(--gold); border-color: var(--border);">
+                  ✦ Вы преподаватель
+                </div>
+                <a href="{% url 'courses_catalog' %}" class="cd-btn-dashboard">
+                  ← Вернуться в каталог
+                </a>
+
+              {% else %}
+                <!-- Кнопка открывает модальное окно входа через data-open-modal -->
+                <a href="#" class="cd-btn-enroll" id="btnEnrollLogin" data-open-modal="login" style="text-decoration:none;">
+                  <span>✦</span> Войди чтобы записаться
+                </a>
+                <a href="{% url 'courses_catalog' %}" class="cd-btn-dashboard">
+                  ← Вернуться в каталог
+                </a>
+              {% endif %}
+
+            </div>
+
+            <div class="cd-card-divider"></div>
+
+            <!-- Фичи курса -->
+            <div class="cd-card-features">
+              <div class="cd-card-feature">
+                <span class="cd-card-feature-icon">📅</span>
+                <span>Добавлен {{ course.created_at|date:"d E Y" }}</span>
+              </div>
+              {% if course.introduction and course.introduction.video_url %}
+              <div class="cd-card-feature">
+                <span class="cd-card-feature-icon">🎬</span>
+                <span>Видеоматериалы включены</span>
+              </div>
+              {% endif %}
+              <div class="cd-card-feature">
+                <span class="cd-card-feature-icon">♾️</span>
+                <span>Бессрочный доступ к материалам</span>
+              </div>
+              <div class="cd-card-feature">
+                <span class="cd-card-feature-icon">📱</span>
+                <span>Доступ с любого устройства</span>
+              </div>
+              <div class="cd-card-feature">
+                <span class="cd-card-feature-icon">🏆</span>
+                <span>Отслеживание прогресса</span>
+              </div>
+            </div>
+
+          </div><!-- /cd-card-body -->
+        </div><!-- /cd-card -->
+      </div>
+      <!-- ─── конец правой части ────────────────────────────── -->
+
+    </div><!-- /cd-hero -->
+
+
+    <!-- ═══ ПОХОЖИЕ КУРСЫ ════════════════════════════════════ -->
+    {% if related_courses %}
+    <div class="cd-section reveal" style="margin-top: 24px;">
+      <h2 class="cd-section-title">Похожие курсы</h2>
+      <div class="cd-related-grid">
+        {% for rc in related_courses %}
+        <div class="cd-related-card reveal">
+          <div class="cd-related-thumb">
+            {% if rc.thumbnail %}
+              <img src="{{ rc.thumbnail.url }}" alt="{{ rc.title }}" />
+            {% else %}
+              {% if rc.category == 'dev' %}💻
+              {% elif rc.category == 'design' %}🎨
+              {% elif rc.category == 'data' %}📊
+              {% else %}📚{% endif %}
+            {% endif %}
+          </div>
+          <div class="cd-related-body">
+            <div class="cd-related-title">{{ rc.title }}</div>
+            <div class="cd-related-meta">
+              <span>{{ rc.lessons.count }} уроков</span>
+              <span>·</span>
+              <span>{{ rc.get_level_display }}</span>
+            </div>
+          </div>
+          <div class="cd-related-footer">
+            <a href="/courses/{{ rc.pk }}/" class="cd-related-btn">Смотреть курс →</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+
+
+  <!-- ═══ МОДАЛЬНОЕ: ОТПИСКА ═══════════════════════════════ -->
+  <div class="cd-modal-overlay" id="modalUnenroll">
+    <div class="cd-modal-box">
+      <div style="text-align:center; font-size: 2.5rem; margin-bottom: 16px;">⚠️</div>
+      <h2 class="cd-modal-title">Отписаться от курса?</h2>
+      <p class="cd-modal-sub">
+        Твой прогресс по курсу <strong style="color:var(--white);">«{{ course.title }}»</strong> будет удалён.
+        Это действие нельзя отменить.
+      </p>
+      {% if is_enrolled and enrollment %}
+      <form id="unenrollForm" method="post" action="{% url 'student_unenroll' enrollment.pk %}">
+        {% csrf_token %}
+        <div class="cd-modal-actions">
+          <button type="button" class="cd-modal-cancel" onclick="closeUnenrollModal()">Отмена</button>
+          <button type="submit" class="cd-modal-confirm">Отписаться</button>
+        </div>
+      </form>
+      {% endif %}
+      <div class="cd-modal-orb"></div>
+    </div>
+  </div>
+
+
+  <!-- ═══ TOAST УВЕДОМЛЕНИЕ ════════════════════════════════ -->
+  <div class="cd-toast" id="cdToast">
+    <span class="cd-toast-icon" id="cdToastIcon">✓</span>
+    <span class="cd-toast-text" id="cdToastText"></span>
+  </div>
+
+
+  <script>
+    const ENROLL_URL  = '{% url "student_enroll" course.pk %}';
+    const CSRF_TOKEN  = '{{ csrf_token }}';
+    const IS_ENROLLED = {{ is_enrolled|yesno:"true,false" }};
+  </script>
+  <script src="{% static 'main/js/course_detail.js' %}"></script>
+
+  <!-- ═══ МОДАЛКИ ВХОДА/РЕГИСТРАЦИИ (для незалогиненных) ═══ -->
+  {% if not user.is_authenticated %}
+  <div class="modal-overlay" id="modalLogin" role="dialog" aria-modal="true" aria-label="Вход">
+    <div class="modal-box" id="modalLoginBox">
+      <button class="modal-close" id="closeLogin" aria-label="Закрыть">✕</button>
+      <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+      <h2 class="modal-title">С возвращением</h2>
+      <p class="modal-sub">Войди в свой аккаунт и продолжай учиться</p>
+      <form class="modal-form" id="loginForm" action="{% url 'login' %}" method="post" novalidate>
+        {% csrf_token %}
+        <div class="mf-group">
+          <label class="mf-label" for="loginEmail">Электронная почта</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">✉</span>
+            <input class="mf-input" id="loginEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label" for="loginPassword">Пароль</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">🔒</span>
+            <input class="mf-input" id="loginPassword" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="mf-toggle-pw" data-target="loginPassword" aria-label="Показать пароль">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-gold btn-modal-submit">Войти</button>
+      </form>
+      <p class="modal-switch">Нет аккаунта? <button class="modal-link" id="switchToRegister">Зарегистрироваться</button></p>
+      <div class="modal-orb modal-orb-1"></div>
+      <div class="modal-orb modal-orb-2"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalRegister" role="dialog" aria-modal="true" aria-label="Регистрация">
+    <div class="modal-box modal-box--wide" id="modalRegisterBox">
+      <button class="modal-close" id="closeRegister" aria-label="Закрыть">✕</button>
+      <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+      <h2 class="modal-title">Создай аккаунт</h2>
+      <p class="modal-sub">Зарегистрируйся и запишись на курс</p>
+      <div class="role-toggle" id="roleToggle">
+        <button type="button" class="role-btn active" data-role="student"><span class="role-icon">🎓</span> Студент</button>
+        <button type="button" class="role-btn" data-role="teacher"><span class="role-icon">📚</span> Преподаватель</button>
+        <div class="role-slider"></div>
+      </div>
+      <form class="modal-form" id="registerForm" action="{% url 'register' %}" method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="role" id="roleInput" value="student" />
+        <div class="mf-row">
+          <div class="mf-group">
+            <label class="mf-label" for="regFirstName">Имя</label>
+            <div class="mf-input-wrap">
+              <span class="mf-icon">👤</span>
+              <input class="mf-input" id="regFirstName" name="first_name" type="text" placeholder="Имя" autocomplete="given-name" required />
+            </div>
+          </div>
+          <div class="mf-group">
+            <label class="mf-label" for="regLastName">Фамилия</label>
+            <div class="mf-input-wrap">
+              <span class="mf-icon">👤</span>
+              <input class="mf-input" id="regLastName" name="last_name" type="text" placeholder="Фамилия" autocomplete="family-name" required />
+            </div>
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label" for="regEmail">Электронная почта</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">✉</span>
+            <input class="mf-input" id="regEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label" for="regPassword">Пароль</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">🔒</span>
+            <input class="mf-input" id="regPassword" name="password" type="password" placeholder="Минимум 8 символов" autocomplete="new-password" required />
+            <button type="button" class="mf-toggle-pw" data-target="regPassword" aria-label="Показать пароль">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-gold btn-modal-submit">Зарегистрироваться</button>
+      </form>
+      <p class="modal-switch">Уже есть аккаунт? <button class="modal-link" id="switchToLogin">Войти</button></p>
+      <div class="modal-orb modal-orb-1"></div>
+      <div class="modal-orb modal-orb-2"></div>
+    </div>
+  </div>
+  <script src="{% static 'main/js/main_page.js' %}"></script>
+  {% endif %}
+
+</body>
+</html>

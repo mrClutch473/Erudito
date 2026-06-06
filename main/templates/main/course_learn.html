@@ -1,0 +1,590 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ current_lesson.title }} — {{ course.title }} — Erudito</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/course_learn.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- Markdown рендеринг -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <!-- Стили Markdown для студентов -->
+  <link rel="stylesheet" href="{% static 'main/css/course_learn_md.css' %}" />
+</head>
+<body>
+
+<!-- ═══ ФОН ════════════════════════════════════ -->
+<div class="lp-bg">
+  <div class="lp-bg-orb lp-bg-orb-1"></div>
+  <div class="lp-bg-orb lp-bg-orb-2"></div>
+</div>
+
+<!-- ═══ ГЛАВНАЯ СЕТКА ══════════════════════════ -->
+<div class="lp-layout">
+
+  <!-- ──────────── ТОПБАР ──────────────────── -->
+  <header class="lp-topbar">
+
+    <div class="lp-topbar-logo">
+      <button class="lp-sidebar-toggle" id="sidebarToggle" title="Список уроков">☰</button>
+      <a href="/" class="lp-topbar-logo-link">
+        <span class="logo-e">E</span>rudito
+      </a>
+    </div>
+
+    <div class="lp-topbar-center">
+      <span class="lp-course-label">Курс</span>
+      <span class="lp-course-name">{{ course.title }}</span>
+    </div>
+
+    <div class="lp-topbar-right">
+      <div class="lp-topbar-progress">
+        <div class="lp-topbar-bar">
+          <div class="lp-topbar-fill" id="topbarFill" style="width:{{ enrollment.progress }}%"></div>
+        </div>
+        <span class="lp-topbar-pct" id="topbarPct">{{ enrollment.progress }}%</span>
+      </div>
+
+      <div class="lp-topbar-sep"></div>
+
+      <a href="/courses/{{ course.pk }}/" class="lp-topbar-btn">
+        <span>←</span> <span>О курсе</span>
+      </a>
+      <a href="{% url 'student_dashboard' %}" class="lp-topbar-btn">
+        <span>📚</span> <span>Дашборд</span>
+      </a>
+    </div>
+
+  </header>
+
+
+  <!-- ──────────── САЙДБАР ─────────────────── -->
+  <aside class="lp-sidebar" id="sidebar">
+
+    <div class="lp-sidebar-head">
+      <div class="lp-sidebar-course">{{ course.title }}</div>
+
+      <div class="lp-sb-progress">
+        <div class="lp-sb-progress-row">
+          <span class="lp-sb-progress-label">Прогресс курса</span>
+          <span class="lp-sb-progress-pct" id="sbPct">{{ enrollment.progress }}%</span>
+        </div>
+        <div class="lp-sb-bar">
+          <div class="lp-sb-fill" id="sbFill" data-width="{{ enrollment.progress }}"></div>
+        </div>
+        <div class="lp-sb-sub" id="sbSub">
+          {{ enrollment.lessons_done }} из {{ total_lessons }} уроков пройдено
+        </div>
+      </div>
+    </div>
+
+    <nav class="lp-lesson-list" id="lessonList">
+      {% for lesson in lessons %}
+
+        {# ── Пройденный урок ── #}
+        {% if lesson.pk in done_lesson_ids %}
+          <a href="{% url 'course_learn' course.pk lesson.pk %}"
+             class="lp-lesson-row lp-lesson-row--done {% if lesson.pk == current_lesson.pk %}lp-lesson-row--active{% endif %}"
+             data-lesson-id="{{ lesson.pk }}">
+            <div class="lp-ls-icon lp-ls-icon--done">✓</div>
+            <div class="lp-ls-info">
+              <div class="lp-ls-title">{{ lesson.title }}</div>
+              <div class="lp-ls-meta">
+                {% if lesson.duration %}<span>{{ lesson.duration }} мин</span>{% endif %}
+                {% if lesson.video_url %}<span>🎬</span>{% endif %}
+                {% if lesson.text %}<span>📄</span>{% endif %}
+              </div>
+            </div>
+          </a>
+
+        {# ── Текущий активный урок ── #}
+        {% elif lesson.pk == current_lesson.pk %}
+          <a href="{% url 'course_learn' course.pk lesson.pk %}"
+             class="lp-lesson-row lp-lesson-row--active"
+             data-lesson-id="{{ lesson.pk }}">
+            <div class="lp-ls-icon lp-ls-icon--active">{{ lesson.order }}</div>
+            <div class="lp-ls-info">
+              <div class="lp-ls-title">{{ lesson.title }}</div>
+              <div class="lp-ls-meta">
+                {% if lesson.duration %}<span>{{ lesson.duration }} мин</span>{% endif %}
+                {% if lesson.video_url %}<span>🎬</span>{% endif %}
+                {% if lesson.text %}<span>📄</span>{% endif %}
+              </div>
+            </div>
+          </a>
+
+        {# ── Следующий доступный (сразу после последнего пройденного) ── #}
+        {% elif lesson.pk == next_available_id %}
+          <div class="lp-lesson-row lp-lesson-row--locked"
+               onclick="showLockedHint()"
+               title="Сначала завершите текущий урок">
+            <div class="lp-ls-icon lp-ls-icon--unlocked">{{ lesson.order }}</div>
+            <div class="lp-ls-info">
+              <div class="lp-ls-title">{{ lesson.title }}</div>
+              <div class="lp-ls-meta">
+                {% if lesson.duration %}<span>{{ lesson.duration }} мин</span>{% endif %}
+              </div>
+            </div>
+          </div>
+
+        {# ── Заблокированный урок ── #}
+        {% else %}
+          <div class="lp-lesson-row lp-lesson-row--locked"
+               onclick="showLockedHint()">
+            <div class="lp-ls-icon lp-ls-icon--locked">🔒</div>
+            <div class="lp-ls-info">
+              <div class="lp-ls-title">{{ lesson.title }}</div>
+              <div class="lp-ls-meta">
+                {% if lesson.duration %}<span>{{ lesson.duration }} мин</span>{% endif %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+      {% endfor %}
+    </nav>
+
+  </aside>
+
+  <!-- Оверлей мобайл-сайдбара -->
+  <div class="lp-overlay" id="overlay"></div>
+
+
+  <!-- ──────────── КОНТЕНТ ─────────────────── -->
+  <main class="lp-content-area">
+
+    <div class="lp-scroll" id="contentScroll">
+      <div class="lp-content-wrap">
+
+        <!-- Заголовок урока -->
+        <div class="lp-lesson-header">
+          <div class="lp-lesson-eyebrow">
+            Урок {{ current_lesson.order }} из {{ total_lessons }}
+            {% if is_current_done %}
+              <span class="lp-done-badge">✓ Пройден</span>
+            {% endif %}
+          </div>
+          <h1 class="lp-lesson-title">{{ current_lesson.title }}</h1>
+          <div class="lp-lesson-chips">
+            {% if current_lesson.duration %}
+              <span class="lp-chip">⏱ {{ current_lesson.duration }} мин</span>
+            {% endif %}
+            {% if current_lesson.video_url %}
+              <span class="lp-chip">🎬 Видео</span>
+            {% endif %}
+            {% if current_lesson.text %}
+              <span class="lp-chip">📄 Текст</span>
+            {% endif %}
+            {% if current_lesson.materials.exists %}
+              <span class="lp-chip">📎 {{ current_lesson.materials.count }} материал{{ current_lesson.materials.count|pluralize:",,ов" }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Видеоплеер -->
+        {% if current_lesson.video_url %}
+          <div class="lp-video-wrap">
+            <iframe
+              src="{{ embed_url }}"
+              allowfullscreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+          </div>
+        {% else %}
+          <div class="lp-video-placeholder">
+            <div class="lp-video-placeholder-icon">🎬</div>
+            <div class="lp-video-placeholder-text">Видео для этого урока не добавлено</div>
+          </div>
+        {% endif %}
+
+        <!-- Текстовый материал -->
+        {% if current_lesson.text %}
+          <div class="lp-section-label">Материал урока</div>
+          <div class="lp-text-body"></div>
+          <script type="application/json" id="lessonTextData">
+            {{ current_lesson.text|escapejs }}
+          </script>
+        {% endif %}
+
+        <!-- Доп. материалы -->
+        {% if current_lesson.materials.exists %}
+          <div class="lp-section-label">Дополнительные материалы</div>
+          <div class="lp-materials-grid">
+            {% for mat in current_lesson.materials.all %}
+
+              {% if mat.type == 'link' and mat.url %}
+                {# Ссылка — открывается в новой вкладке #}
+                <a href="{{ mat.url }}" target="_blank" rel="noopener noreferrer" class="lp-material-card">
+                  <div class="lp-mat-icon lp-mat-icon--link">🔗</div>
+                  <div class="lp-mat-info">
+                    <div class="lp-mat-name">{{ mat.title }}</div>
+                    <div class="lp-mat-type">{{ mat.get_type_display }}</div>
+                  </div>
+                  <span class="lp-mat-arrow">↗</span>
+                </a>
+
+              {% elif mat.type == 'pdf' and mat.file %}
+                {# PDF — скачивается #}
+                <a href="{{ mat.file.url }}" download="{{ mat.title }}" class="lp-material-card">
+                  <div class="lp-mat-icon lp-mat-icon--pdf">📎</div>
+                  <div class="lp-mat-info">
+                    <div class="lp-mat-name">{{ mat.title }}</div>
+                    <div class="lp-mat-type">{{ mat.get_type_display }}</div>
+                  </div>
+                  <span class="lp-mat-arrow">↓</span>
+                </a>
+
+              {% elif mat.type == 'file' and mat.file %}
+                {# Файл — скачивается #}
+                <a href="{{ mat.file.url }}" download="{{ mat.title }}" class="lp-material-card">
+                  <div class="lp-mat-icon lp-mat-icon--file">📁</div>
+                  <div class="lp-mat-info">
+                    <div class="lp-mat-name">{{ mat.title }}</div>
+                    <div class="lp-mat-type">{{ mat.get_type_display }}</div>
+                  </div>
+                  <span class="lp-mat-arrow">↓</span>
+                </a>
+
+              {% else %}
+                {# Материал без файла/ссылки — неактивная карточка #}
+                <div class="lp-material-card lp-material-card--unavailable">
+                  <div class="lp-mat-icon lp-mat-icon--file">📁</div>
+                  <div class="lp-mat-info">
+                    <div class="lp-mat-name">{{ mat.title }}</div>
+                    <div class="lp-mat-type">{{ mat.get_type_display }}</div>
+                  </div>
+                </div>
+              {% endif %}
+
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Заметки студента -->
+        <div class="lp-notes-section">
+          <div class="lp-section-label">Заметки</div>
+          <button class="lp-notes-toggle-btn" id="notesToggle" type="button">
+            <span class="lp-notes-icon">📝</span>
+            <span id="notesToggleText">Добавить заметку к уроку</span>
+          </button>
+          <textarea
+            class="lp-notes-textarea"
+            id="notesArea"
+            placeholder="Пиши свои мысли, термины, вопросы..."
+            data-lesson="{{ current_lesson.pk }}"
+          ></textarea>
+          <button class="lp-notes-save-btn" id="notesSave" type="button">
+            💾 Сохранить заметку
+          </button>
+        </div>
+
+      </div><!-- /content-wrap -->
+    </div><!-- /scroll -->
+
+
+    <!-- Нижняя панель навигации -->
+    <div class="lp-bottombar">
+
+      <!-- Кнопка «Назад» -->
+      {% if prev_lesson %}
+        <a href="{% url 'course_learn' course.pk prev_lesson.pk %}"
+           class="lp-nav-btn" id="prevBtn">
+          ← Предыдущий
+        </a>
+      {% else %}
+        <button class="lp-nav-btn lp-nav-btn--disabled" disabled>
+          ← Предыдущий
+        </button>
+      {% endif %}
+
+      <!-- Центральная кнопка -->
+      {% if is_current_done %}
+        <button class="lp-done-btn lp-done-btn--completed" disabled>
+          ✓ Урок пройден
+        </button>
+      {% else %}
+        <button class="lp-done-btn lp-done-btn--pending"
+                id="doneBtn"
+                onclick="markLessonDone()">
+          ✦ Урок пройден
+        </button>
+      {% endif %}
+
+      <!-- Кнопка «Вперёд» -->
+      {% if next_lesson and is_current_done %}
+        <a href="{% url 'course_learn' course.pk next_lesson.pk %}"
+           class="lp-nav-btn" id="nextBtn">
+          Следующий →
+        </a>
+      {% elif next_lesson %}
+        <button class="lp-nav-btn lp-nav-btn--disabled"
+                id="nextBtnLocked"
+                onclick="showLockedHint()">
+          Следующий →
+        </button>
+      {% else %}
+        {# Последний урок и он уже пройден — кнопка на завершение #}
+        {% if is_current_done %}
+          <button class="lp-nav-btn" onclick="showCompletion()">
+            🏆 Завершить курс
+          </button>
+        {% else %}
+          <button class="lp-nav-btn lp-nav-btn--disabled" disabled>
+            Следующий →
+          </button>
+        {% endif %}
+      {% endif %}
+
+    </div><!-- /bottombar -->
+
+  </main><!-- /content-area -->
+
+</div><!-- /lp-layout -->
+
+
+<!-- ═══ ЭКРАН ЗАВЕРШЕНИЯ КУРСА ═══════════════ -->
+<div class="lp-completion {% if enrollment.is_completed %}show{% endif %}" id="completionScreen">
+  <div class="lp-completion-box">
+
+    <!-- Декоративные орбы -->
+    <div class="lp-cpl-orb lp-cpl-orb-1"></div>
+    <div class="lp-cpl-orb lp-cpl-orb-2"></div>
+
+    <!-- Конфетти-звёзды -->
+    <span class="lp-star" style="left:12%;top:18%;animation-delay:0s">✦</span>
+    <span class="lp-star" style="left:80%;top:14%;animation-delay:0.5s">⭐</span>
+    <span class="lp-star" style="left:60%;top:25%;animation-delay:1.1s">✨</span>
+    <span class="lp-star" style="left:25%;top:30%;animation-delay:0.8s">✦</span>
+    <span class="lp-star" style="left:88%;top:38%;animation-delay:0.3s">⭐</span>
+
+    <!-- Трофей -->
+    <span class="lp-cpl-trophy">🏆</span>
+
+    <h2 class="lp-cpl-title">
+      Курс <em>завершён!</em>
+    </h2>
+
+    <p class="lp-cpl-sub">
+      Ты прошёл все уроки курса <strong style="color:var(--white)">«{{ course.title }}»</strong>.<br>
+      Отличная работа — твои знания расширились!
+    </p>
+
+    <!-- Статистика -->
+    <div class="lp-cpl-stats">
+      <div class="lp-cpl-stat">
+        <span class="lp-cpl-stat-icon">📖</span>
+        <span class="lp-cpl-stat-val">{{ total_lessons }}</span>
+        <span class="lp-cpl-stat-label">Уроков</span>
+      </div>
+      <div class="lp-cpl-stat">
+        <span class="lp-cpl-stat-icon">⏱</span>
+        <span class="lp-cpl-stat-val">{{ total_duration|default:"—" }}</span>
+        <span class="lp-cpl-stat-label">Минут</span>
+      </div>
+      <div class="lp-cpl-stat">
+        <span class="lp-cpl-stat-icon">🔥</span>
+        <span class="lp-cpl-stat-val">100%</span>
+        <span class="lp-cpl-stat-label">Прогресс</span>
+      </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="lp-cpl-actions">
+      <a href="{% url 'student_dashboard' %}" class="lp-cpl-btn lp-cpl-btn--gold">
+        📚 Мои курсы
+      </a>
+      <a href="{% url 'courses_catalog' %}" class="lp-cpl-btn lp-cpl-btn--outline">
+        Найти ещё курсы →
+      </a>
+      <button class="lp-cpl-btn lp-cpl-btn--outline"
+              onclick="closeCompletion()" type="button">
+        Просмотреть курс
+      </button>
+    </div>
+
+    <!-- ═══ ФОРМА ОТЗЫВА ═══ -->
+    <div class="lp-review-block" id="reviewBlock">
+
+      <div class="lp-review-divider">
+        <span>✦</span>
+      </div>
+
+      {% if user_review %}
+        <div class="lp-review-submitted" id="reviewSubmitted">
+          <div class="lp-review-thank-icon">🌟</div>
+          <div class="lp-review-submitted-label">Твой отзыв</div>
+          <div class="lp-review-stars-display" id="reviewStarsDisplay">
+            {% for i in "12345" %}
+              <span class="lp-star-icon {% if forloop.counter <= user_review.rating %}lp-star-filled{% endif %}">★</span>
+            {% endfor %}
+          </div>
+          {% if user_review.text %}
+            <p class="lp-review-text-display">{{ user_review.text }}</p>
+          {% endif %}
+        </div>
+
+      {% else %}
+        <div class="lp-review-form-wrap" id="reviewFormWrap">
+          <div class="lp-review-title">Понравился курс? Оставь отзыв</div>
+          <div class="lp-review-subtitle">Твоя оценка поможет преподавателю стать лучше</div>
+          <div class="lp-review-stars-input" id="starRating">
+            {% for i in "12345" %}
+              <span class="lp-star-btn" data-value="{{ forloop.counter }}">★</span>
+            {% endfor %}
+          </div>
+          <div class="lp-review-rating-label" id="ratingLabel">Нажми на звёздочку</div>
+          <textarea
+            id="reviewTextarea"
+            class="lp-review-textarea"
+            placeholder="Напиши пару слов о курсе (необязательно)..."
+            rows="3"
+          ></textarea>
+          <button
+            class="lp-review-submit-btn"
+            id="reviewSubmitBtn"
+            onclick="submitReview()"
+            type="button"
+            disabled
+          >
+            ✦ Отправить отзыв
+          </button>
+        </div>
+
+        <div class="lp-review-submitted" id="reviewSubmitted" style="display:none">
+          <div class="lp-review-thank-icon" id="reviewThankIcon">🌟</div>
+          <div class="lp-review-submitted-label">Спасибо за отзыв!</div>
+          <div class="lp-review-submitted-sub">Твоя оценка поможет преподавателю стать лучше</div>
+          <div class="lp-review-stars-display" id="reviewStarsDisplay"></div>
+          <p class="lp-review-text-display" id="reviewTextDisplay" style="display:none"></p>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══ TOAST ══════════════════════════════════ -->
+<div class="lp-toast" id="lpToast">
+  <span id="lpToastIcon">✓</span>
+  <span id="lpToastText"></span>
+</div>
+
+
+<!-- ═══ JS-ПЕРЕМЕННЫЕ ══════════════════════════ -->
+<script>
+  const LP = {
+    csrfToken    : '{{ csrf_token }}',
+    markDoneUrl  : '{% url "mark_lesson_done" course.pk current_lesson.pk %}',
+    reviewUrl    : '{% url "submit_review" course.pk %}',
+    currentLessonId : {{ current_lesson.pk }},
+    isCurrentDone   : {{ is_current_done|yesno:"true,false" }},
+    isCourseCompleted : {{ enrollment.is_completed|yesno:"true,false" }},
+    totalLessons : {{ total_lessons }},
+    {% if next_lesson %}
+    nextLessonUrl : '{% url "course_learn" course.pk next_lesson.pk %}',
+    {% else %}
+    nextLessonUrl : null,
+    {% endif %}
+    notesKey : 'erudito_notes_{{ course.pk }}_{{ current_lesson.pk }}',
+  };
+
+  // ═══ ОТЗЫВ ═══
+  let selectedRating = 0;
+  const ratingLabels = ['', 'Очень плохо', 'Плохо', 'Нормально', 'Хорошо', 'Отлично!'];
+
+  document.querySelectorAll('.lp-star-btn').forEach(star => {
+    star.addEventListener('mouseenter', () => highlightStars(+star.dataset.value));
+    star.addEventListener('mouseleave', () => highlightStars(selectedRating));
+    star.addEventListener('click', () => {
+      selectedRating = +star.dataset.value;
+      highlightStars(selectedRating);
+      const label = document.getElementById('ratingLabel');
+      label.textContent = ratingLabels[selectedRating];
+      label.style.opacity = '1';
+      document.getElementById('reviewSubmitBtn').disabled = false;
+      // Анимация кликнутой звёзды
+      star.style.transform = 'scale(1.5) translateY(-4px)';
+      setTimeout(() => { star.style.transform = ''; }, 250);
+    });
+  });
+
+  function highlightStars(count) {
+    document.querySelectorAll('.lp-star-btn').forEach((s, i) => {
+      s.classList.toggle('lp-star-btn--active', i < count);
+    });
+  }
+
+  function submitReview() {
+    if (!selectedRating) return;
+    const text = (document.getElementById('reviewTextarea').value || '').trim();
+    const btn  = document.getElementById('reviewSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Отправка...';
+
+    fetch(LP.reviewUrl, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': LP.csrfToken },
+      body:    JSON.stringify({ rating: selectedRating, text }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        // Скрываем форму с fade-out
+        const form = document.getElementById('reviewFormWrap');
+        form.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        form.style.opacity = '0';
+        form.style.transform = 'translateY(-8px)';
+
+        setTimeout(() => {
+          form.style.display = 'none';
+
+          // Показываем блок "Спасибо"
+          const submitted = document.getElementById('reviewSubmitted');
+          submitted.style.display = 'flex';
+          submitted.style.opacity = '0';
+          submitted.style.transform = 'translateY(10px)';
+          submitted.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+          // Звёзды волной с задержками
+          const starsEl = document.getElementById('reviewStarsDisplay');
+          starsEl.innerHTML = Array.from({length: 5}, (_, i) =>
+            `<span class="lp-star-icon${i < data.rating ? ' lp-star-filled' : ''}" style="animation-delay:${i * 0.09}s">★</span>`
+          ).join('');
+          // Класс lp-star-animate на заполненные
+          starsEl.querySelectorAll('.lp-star-filled').forEach(s => s.classList.add('lp-star-animate'));
+          // Текст отзыва
+          if (data.text) {
+            const textEl = document.getElementById('reviewTextDisplay');
+            textEl.textContent = data.text;
+            textEl.style.display = 'block';
+          }
+
+          // Плавное появление
+          requestAnimationFrame(() => {
+            submitted.style.opacity = '1';
+            submitted.style.transform = 'translateY(0)';
+          });
+        }, 320);
+      } else {
+        btn.disabled = false;
+        btn.textContent = '✦ Отправить отзыв';
+        alert(data.error || 'Ошибка. Попробуй ещё раз.');
+      }
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.textContent = '✦ Отправить отзыв';
+    });
+  }
+</script>
+<script src="{% static 'main/js/course_learn.js' %}"></script>
+
+</body>
+</html>

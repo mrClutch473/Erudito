@@ -1,0 +1,409 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ course.title }} — Редактор курса · Erudito</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/teacher_courses.css' %}" />
+  <link rel="stylesheet" href="{% static 'main/css/teacher_course_edit.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- Markdown рендеринг -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+</head>
+<body class="edit-body">
+
+  <!-- NAV -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="logo"><span class="logo-e">E</span>rudito</a>
+      <div class="nav-breadcrumb">
+        <a href="/teacher/courses/" class="breadcrumb-link">Мои курсы</a>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">{{ course.title|truncatechars:40 }}</span>
+      </div>
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          <span class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</span>
+          <a href="/logout/" class="btn-gold">Выйти</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ФОНОВЫЕ ДЕКОРАЦИИ -->
+  <div class="tc-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <div class="editor-layout">
+
+    <!-- САЙДБАР — рендерится Django из БД -->
+    <aside class="editor-sidebar" id="editorSidebar">
+
+      <div class="sidebar-header">
+        <div class="sidebar-course-thumb">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+          {% else %}
+            <div class="sidebar-thumb-placeholder">
+              {% if course.category == 'dev' %}💻
+              {% elif course.category == 'design' %}🎨
+              {% elif course.category == 'data' %}📊
+              {% else %}📚{% endif %}
+            </div>
+          {% endif %}
+        </div>
+        <div class="sidebar-course-info">
+          <h2 class="sidebar-course-title">{{ course.title }}</h2>
+          <div class="sidebar-course-meta">
+            <span class="sidebar-category">{{ course.get_category_display }}</span>
+            <span class="sidebar-sep">·</span>
+            <span class="{% if course.is_published %}status-pub{% else %}status-draft{% endif %}">
+              {% if course.is_published %}● Опубликован{% else %}○ Черновик{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-add-lesson" id="btnAddLesson">
+        <span class="btn-add-icon">＋</span>
+        <span>Добавить урок</span>
+      </button>
+
+      <div class="lessons-list" id="lessonsList">
+        {% if lessons %}
+          {% for lesson in lessons %}
+            <div class="lesson-item"
+                 data-lesson-id="{{ lesson.pk }}"
+                 draggable="true">
+              <div class="lesson-item-drag">⠿</div>
+              <div class="lesson-item-body">
+                <div class="lesson-item-order">Урок {{ lesson.order }}</div>
+                <div class="lesson-item-title">{{ lesson.title }}</div>
+                <div class="lesson-item-meta">
+                  {% if lesson.duration %}⏱ {{ lesson.duration }} мин{% endif %}
+                  {% if lesson.video_url %}{% if lesson.duration %} · {% endif %}🎬{% endif %}
+                  {% if lesson.materials.count %} · 📎 {{ lesson.materials.count }}{% endif %}
+                </div>
+              </div>
+              <button class="lesson-item-delete" title="Удалить урок"
+                      onclick="confirmDeleteLesson({{ lesson.pk }}, '{{ lesson.title|escapejs }}')">✕</button>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="lessons-empty" id="lessonsEmpty">
+            <div class="le-icon">📋</div>
+            <p>Уроков пока нет.<br/>Добавь первый!</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="/teacher/courses/" class="sf-btn sf-btn--ghost">← Назад</a>
+        <form method="post" action="/teacher/courses/{{ course.pk }}/toggle-publish/" style="flex:1;">
+          {% csrf_token %}
+          <button type="submit" class="sf-btn {% if course.is_published %}sf-btn--unpublish{% else %}sf-btn--publish{% endif %}">
+            {% if course.is_published %}Снять с публикации{% else %}Опубликовать{% endif %}
+          </button>
+        </form>
+      </div>
+
+    </aside>
+
+    <!-- ОСНОВНАЯ ЗОНА -->
+    <main class="editor-main" id="editorMain">
+
+      <!-- Нет уроков -->
+      <div class="editor-empty" id="editorEmpty" {% if lessons %}style="display:none;"{% endif %}>
+        <div class="ee-icon">✦</div>
+        <h2>Начни строить курс</h2>
+        <p>Добавь первый урок — он появится в боковом меню.<br/>Ты сможешь добавить текст, видео и дополнительные файлы.</p>
+        <button class="btn-gold btn-lg" onclick="document.getElementById('btnAddLesson').click()">
+          Добавить первый урок
+        </button>
+      </div>
+
+      <!-- Лоадер -->
+      <div class="lesson-loading" id="lessonLoading" style="display:none;">
+        <div class="loading-spinner"></div>
+        <span>Загружаем урок...</span>
+      </div>
+
+      <!-- Редактор урока -->
+      <div class="lesson-editor" id="lessonEditor" {% if not lessons %}style="display:none;"{% endif %}>
+
+        <div class="le-header reveal">
+          <div>
+            <div class="tc-label">✦ Редактор урока</div>
+            <h1 class="le-title">Урок <em id="lessonOrderDisplay">—</em></h1>
+          </div>
+          <div class="le-header-actions">
+            <button class="btn-outline" id="btnSaveLesson" onclick="saveLesson()">
+              💾 Сохранить
+            </button>
+          </div>
+        </div>
+
+        <form id="lessonForm" novalidate>
+          {% csrf_token %}
+          <input type="hidden" id="lessonId" value="" />
+
+          <div class="le-body">
+
+            <!-- ЛЕВАЯ КОЛОНКА -->
+            <div class="le-col le-col--main">
+
+              <div class="le-section reveal">
+                <div class="le-section-title">Основная информация</div>
+                <div class="le-fields">
+                  <div class="le-field-row">
+                    <div class="le-field le-field--grow">
+                      <label class="mf-label">Название урока</label>
+                      <div class="mf-input-wrap">
+                        <span class="mf-icon">✦</span>
+                        <input class="mf-input" id="fTitle" type="text"
+                               placeholder="Например: Введение в React" required />
+                      </div>
+                    </div>
+                    <div class="le-field le-field--narrow">
+                      <label class="mf-label">Порядок</label>
+                      <div class="mf-input-wrap">
+                        <span class="mf-icon">#</span>
+                        <input class="mf-input" id="fOrder" type="number" min="1" placeholder="1" />
+                      </div>
+                    </div>
+                    <div class="le-field le-field--narrow">
+                      <label class="mf-label">Длительность (мин)</label>
+                      <div class="mf-input-wrap">
+                        <span class="mf-icon">⏱</span>
+                        <input class="mf-input" id="fDuration" type="number" min="0" placeholder="20" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="le-field">
+                    <label class="mf-label">Ссылка на видео</label>
+                    <div class="mf-input-wrap">
+                      <span class="mf-icon">▶</span>
+                      <input class="mf-input" id="fVideoUrl" type="url"
+                             placeholder="https://youtube.com/watch?v=..." />
+                    </div>
+                    <div class="video-preview-wrap" id="videoPreviewWrap" style="display:none;">
+                      <div class="video-preview">
+                        <div class="vp-icon">🎬</div>
+                        <span>Видео добавлено</span>
+                        <a href="#" id="videoPreviewLink" target="_blank" class="vp-open">Открыть ↗</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ─── ТЕКСТОВЫЙ МАТЕРИАЛ С MARKDOWN ─── -->
+              <div class="le-section reveal">
+                <div class="le-section-title">
+                  Текстовый материал
+                  <span class="md-badge">Markdown</span>
+                </div>
+
+                <!-- Тулбар -->
+                <div class="md-toolbar">
+                  <div class="md-toolbar-group">
+                    <button type="button" class="md-btn" data-md="h1" title="Заголовок H1">H1</button>
+                    <button type="button" class="md-btn" data-md="h2" title="Заголовок H2">H2</button>
+                    <button type="button" class="md-btn" data-md="h3" title="Заголовок H3">H3</button>
+                  </div>
+                  <div class="md-toolbar-sep"></div>
+                  <div class="md-toolbar-group">
+                    <button type="button" class="md-btn md-btn--bold" data-md="bold" title="Жирный (Ctrl+B)"><b>B</b></button>
+                    <button type="button" class="md-btn md-btn--italic" data-md="italic" title="Курсив (Ctrl+I)"><i>I</i></button>
+                  </div>
+                  <div class="md-toolbar-sep"></div>
+                  <div class="md-toolbar-group">
+                    <button type="button" class="md-btn" data-md="ul" title="Маркированный список">≡</button>
+                    <button type="button" class="md-btn" data-md="ol" title="Нумерованный список">1.</button>
+                    <button type="button" class="md-btn" data-md="blockquote" title="Цитата">❝</button>
+                  </div>
+                  <div class="md-toolbar-sep"></div>
+                  <div class="md-toolbar-group">
+                    <button type="button" class="md-btn" data-md="code" title="Инлайн-код">&lt;/&gt;</button>
+                    <button type="button" class="md-btn" data-md="codeblock" title="Блок кода">[ ]</button>
+                    <button type="button" class="md-btn" data-md="link" title="Ссылка">🔗</button>
+                    <button type="button" class="md-btn" data-md="hr" title="Разделитель">—</button>
+                  </div>
+                  <div class="md-toolbar-right">
+                    <div class="md-tabs">
+                      <button type="button" class="md-tab md-tab--active" id="tabEdit">✏ Редактор</button>
+                      <button type="button" class="md-tab" id="tabPreview">👁 Предпросмотр</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="le-field">
+                  <!-- Textarea -->
+                  <div class="mf-input-wrap mf-textarea-wrap" id="editorWrap">
+                    <textarea class="mf-input mf-textarea le-textarea" id="fText"
+                              placeholder="Пиши в Markdown:&#10;# Заголовок&#10;**жирный**, *курсив*&#10;- пункт списка&#10;`код`"></textarea>
+                  </div>
+                  <!-- Превью -->
+                  <div class="md-preview" id="mdPreview" style="display:none;"></div>
+                  <div class="le-textarea-hint">
+                    <span id="charCount">0</span> символов
+                    <span class="md-hint-sep">·</span>
+                    <span class="md-hint-text">Поддерживается <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" class="md-hint-link">Markdown</a></span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ПРАВАЯ КОЛОНКА -->
+            <div class="le-col le-col--side">
+
+              <div class="le-section reveal">
+                <div class="le-section-title">
+                  Дополнительные материалы
+                  <span class="materials-count" id="materialsCount">0</span>
+                </div>
+                <div class="materials-list" id="materialsList"></div>
+                <div class="add-material-wrap">
+                  <button type="button" class="btn-add-material" id="btnAddMaterial">
+                    ＋ Добавить материал
+                  </button>
+                </div>
+                <div class="add-material-form" id="addMaterialForm" style="display:none;">
+                  <div class="amf-type-tabs">
+                    <button type="button" class="amf-tab active" data-type="pdf">📄 PDF</button>
+                    <button type="button" class="amf-tab" data-type="link">🔗 Ссылка</button>
+                    <button type="button" class="amf-tab" data-type="file">📎 Файл</button>
+                  </div>
+                  <input type="hidden" id="newMaterialType" value="pdf" />
+                  <div class="mf-input-wrap">
+                    <span class="mf-icon">✦</span>
+                    <input class="mf-input" id="newMaterialTitle" type="text" placeholder="Название материала" />
+                  </div>
+                  <div id="materialFileWrap">
+                    <label class="file-drop file-drop--compact" id="materialFileDrop">
+                      <input type="file" id="materialFileInput" />
+                      <div class="file-drop-content">
+                        <span class="file-drop-icon">📎</span>
+                        <span class="file-drop-text">Перетащи или <u>выбери файл</u></span>
+                      </div>
+                    </label>
+                  </div>
+                  <div id="materialLinkWrap" style="display:none;">
+                    <div class="mf-input-wrap">
+                      <span class="mf-icon">🔗</span>
+                      <input class="mf-input" id="newMaterialUrl" type="url" placeholder="https://..." />
+                    </div>
+                    <div class="material-link-preview" id="materialLinkPreview" style="display:none;">
+                      <span class="mlp-icon">🔗</span>
+                      <span class="mlp-domain"></span>
+                      <span class="mlp-label">ссылка распознана</span>
+                    </div>
+                  </div>
+                  <div class="amf-actions">
+                    <button type="button" class="btn-outline amf-cancel" onclick="cancelAddMaterial()">Отмена</button>
+                    <button type="button" class="btn-gold amf-confirm" onclick="addMaterial()">Добавить</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="le-section reveal">
+                <div class="le-section-title">Действия</div>
+                <div class="quick-actions">
+                  <button type="button" class="qa-btn" onclick="saveLesson()">
+                    <span class="qa-icon">💾</span><span>Сохранить урок</span>
+                  </button>
+                  <button type="button" class="qa-btn qa-btn--danger" onclick="deleteCurrentLesson()">
+                    <span class="qa-icon">🗑</span><span>Удалить урок</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Шпаргалка по Markdown -->
+              <div class="le-section reveal md-cheatsheet-section">
+                <div class="le-section-title">Шпаргалка Markdown</div>
+                <div class="md-cheatsheet">
+                  <div class="md-cs-row"><code># Текст</code><span>Заголовок H1</span></div>
+                  <div class="md-cs-row"><code>## Текст</code><span>Заголовок H2</span></div>
+                  <div class="md-cs-row"><code>**текст**</code><span>Жирный</span></div>
+                  <div class="md-cs-row"><code>*текст*</code><span>Курсив</span></div>
+                  <div class="md-cs-row"><code>- пункт</code><span>Список</span></div>
+                  <div class="md-cs-row"><code>1. пункт</code><span>Нумер. список</span></div>
+                  <div class="md-cs-row"><code>`код`</code><span>Инлайн-код</span></div>
+                  <div class="md-cs-row"><code>```</code><span>Блок кода</span></div>
+                  <div class="md-cs-row"><code>> цитата</code><span>Цитата</span></div>
+                  <div class="md-cs-row"><code>---</code><span>Разделитель</span></div>
+                  <div class="md-cs-row"><code>[текст](url)</code><span>Ссылка</span></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- МОДАЛЬНОЕ: ДОБАВИТЬ УРОК -->
+  <div class="modal-overlay" id="modalAddLesson">
+    <div class="modal-box modal-box--small">
+      <button class="modal-close" onclick="closeModal('modalAddLesson')">✕</button>
+      <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+      <h2 class="modal-title">Новый урок</h2>
+      <p class="modal-sub">Введи название — остальное заполнишь в редакторе</p>
+      <form id="addLessonForm" novalidate>
+        {% csrf_token %}
+        <div class="modal-form">
+          <div class="mf-group">
+            <label class="mf-label">Название урока</label>
+            <div class="mf-input-wrap">
+              <span class="mf-icon">✦</span>
+              <input class="mf-input" id="newLessonTitle" type="text"
+                     placeholder="Например: Введение в тему" required />
+            </div>
+          </div>
+        </div>
+        <div class="step-nav" style="margin-top:20px;">
+          <button type="button" class="btn-outline" onclick="closeModal('modalAddLesson')">Отмена</button>
+          <button type="submit" class="btn-gold btn-modal-submit">✦ Создать</button>
+        </div>
+      </form>
+      <div class="modal-orb modal-orb-1"></div>
+      <div class="modal-orb modal-orb-2"></div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ: УДАЛИТЬ УРОК -->
+  <div class="modal-overlay" id="modalDeleteLesson">
+    <div class="modal-box modal-box--small">
+      <div class="delete-icon">✕</div>
+      <h2 class="modal-title" style="text-align:center; font-size:1.6rem;">Удалить урок?</h2>
+      <p class="modal-sub" style="text-align:center;" id="deleteLessonName"></p>
+      <p style="text-align:center; font-size:13px; color:rgba(240,237,230,0.5); margin-bottom:28px;">
+        Все материалы урока будут удалены.
+      </p>
+      <div class="delete-actions">
+        <button type="button" class="btn-outline" onclick="closeModal('modalDeleteLesson')">Отмена</button>
+        <button type="button" class="btn-delete" id="btnConfirmDeleteLesson">Удалить</button>
+      </div>
+      <div class="modal-orb modal-orb-1"></div>
+    </div>
+  </div>
+
+  <script>
+    const COURSE_ID       = {{ course.pk }};
+    const FIRST_LESSON_ID = {{ first_lesson_id|default:'null' }};
+  </script>
+  <script src="{% static 'main/js/teacher_course_edit.js' %}"></script>
+</body>
+</html>

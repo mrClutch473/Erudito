@@ -1,0 +1,219 @@
+/* ══════════════════════════════════════════════════════
+   ERUDITO — MARKDOWN СТИЛИ ДЛЯ СТРАНИЦЫ ПРОХОЖДЕНИЯ УРОКА
+   Подключить в course_learn.html:
+   <link rel="stylesheet" href="{% static 'main/css/course_learn_md.css' %}" />
+   ══════════════════════════════════════════════════════ */
+
+/* ── Базовый контейнер текста урока ─────────── */
+.lp-text-body {
+  color: rgba(240, 237, 230, 0.85);
+  font-family: var(--font-sans, 'Outfit', sans-serif);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* Применяется после рендеринга Markdown через JS */
+.lp-text-body--rendered {
+  padding-top: 4px;
+}
+
+/* ── Заголовки ──────────────────────────────── */
+.lp-text-body--rendered h1,
+.lp-text-body--rendered h2,
+.lp-text-body--rendered h3,
+.lp-text-body--rendered h4,
+.lp-text-body--rendered h5,
+.lp-text-body--rendered h6 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 700;
+  color: rgba(240, 237, 230, 1);
+  line-height: 1.25;
+  margin-top: 0.5em;
+  margin-bottom: 0.6em;
+}
+
+.lp-text-body--rendered h1:first-child,
+.lp-text-body--rendered h2:first-child,
+.lp-text-body--rendered h3:first-child {
+  margin-top: 0;
+}
+
+.lp-text-body--rendered h1 {
+  font-size: 2rem;
+  color: #c9a84c;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+  padding-bottom: 8px;
+}
+
+.lp-text-body--rendered h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid rgba(240, 237, 230, 0.08);
+  padding-bottom: 5px;
+}
+
+.lp-text-body--rendered h3 { font-size: 1.2rem; }
+.lp-text-body--rendered h4 { font-size: 1.05rem; }
+
+/* ── Параграфы ──────────────────────────────── */
+.lp-text-body--rendered p {
+  margin-top: 0;
+}
+
+.lp-text-body--rendered p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Жирный и курсив ────────────────────────── */
+.lp-text-body--rendered strong {
+  font-weight: 700;
+  color: rgba(240, 237, 230, 1);
+}
+
+.lp-text-body--rendered em {
+  font-style: italic;
+  color: rgba(240, 237, 230, 0.8);
+}
+
+/* ── Ссылки ─────────────────────────────────── */
+.lp-text-body--rendered a {
+  color: #c9a84c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(201, 168, 76, 0.4);
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.lp-text-body--rendered a:hover {
+  color: #d4b96a;
+  text-decoration-color: rgba(201, 168, 76, 0.8);
+}
+
+/* ── Списки ─────────────────────────────────── */
+.lp-text-body--rendered ul,
+.lp-text-body--rendered ol {
+  padding-left: 1.5em;
+}
+
+.lp-text-body--rendered li {
+  margin-bottom: 0.18em;
+  color: rgba(240, 237, 230, 0.85);
+}
+
+.lp-text-body--rendered li::marker {
+  color: #c9a84c;
+}
+
+.lp-text-body--rendered ol li::marker {
+  color: rgba(201, 168, 76, 0.7);
+  font-weight: 600;
+}
+
+/* Вложенные списки */
+.lp-text-body--rendered ul ul,
+.lp-text-body--rendered ol ol,
+.lp-text-body--rendered ul ol,
+.lp-text-body--rendered ol ul {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+/* ── Цитаты ─────────────────────────────────── */
+.lp-text-body--rendered blockquote {
+  border-left: 3px solid #c9a84c;
+  padding: 10px 18px;
+  background: rgba(201, 168, 76, 0.06);
+  border-radius: 0 8px 8px 0;
+  color: rgba(240, 237, 230, 0.75);
+  font-style: italic;
+}
+
+.lp-text-body--rendered blockquote p {
+  margin: 0;
+}
+
+/* ── Инлайн-код ─────────────────────────────── */
+.lp-text-body--rendered code {
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: 'Courier New', Consolas, 'Liberation Mono', monospace;
+  font-size: 0.875em;
+  color: #c9a84c;
+  white-space: nowrap;
+}
+
+/* ── Блок кода ──────────────────────────────── */
+.lp-text-body--rendered pre {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(240, 237, 230, 0.08);
+  border-radius: 10px;
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 0.85em 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.3) transparent;
+}
+
+.lp-text-body--rendered pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #a8d8a8;
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+/* ── Горизонтальная линия ───────────────────── */
+.lp-text-body--rendered hr {
+  border: none;
+  border-top: 1px solid rgba(240, 237, 230, 0.1);
+}
+
+/* ── Таблицы ────────────────────────────────── */
+.lp-text-body--rendered table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.85em 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+
+.lp-text-body--rendered thead tr {
+  background: rgba(201, 168, 76, 0.08);
+  border-bottom: 2px solid rgba(201, 168, 76, 0.25);
+}
+
+.lp-text-body--rendered th {
+  padding: 9px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #c9a84c;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lp-text-body--rendered td {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(240, 237, 230, 0.06);
+  color: rgba(240, 237, 230, 0.8);
+}
+
+.lp-text-body--rendered tr:last-child td {
+  border-bottom: none;
+}
+
+.lp-text-body--rendered tr:hover td {
+  background: rgba(240, 237, 230, 0.02);
+}
+
+/* ── Изображения ────────────────────────────── */
+.lp-text-body--rendered img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.6em 0;
+  border: 1px solid rgba(240, 237, 230, 0.08);
+}

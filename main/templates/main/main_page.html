@@ -1,0 +1,580 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Erudito — Платформа знаний</title>
+  <link rel="stylesheet" href="{% static 'main/css/main_page.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-e">E</span>rudito
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Возможности</a></li>
+        <li><a href="#courses">Курсы</a></li>
+        <li><a href="#how">Как это работает</a></li>
+        <li><a href="#teachers">Учителям</a></li>
+      </ul>
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          {% if user.is_teacher %}
+            <a  href="{% url 'teacher_courses' %}" class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</a>
+          {% endif %}
+          {% if user.is_student %}
+            <a  href="{% url 'student_dashboard' %}" class="btn-ghost" style="cursor:default;">{{ user.first_name }} {{ user.last_name }}</a>
+          {% endif %}
+          <a href="/logout/" class="btn-gold">Выйти</a>
+        {% else %}
+          <a href="#" class="btn-ghost" id="btnLogin">Войти</a>
+          <a href="#" class="btn-gold" id="btnRegister">Зарегистрироваться</a>
+        {% endif %}
+      </div>
+      <button class="burger" id="burger" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#features">Возможности</a>
+      <a href="#courses">Курсы</a>
+      <a href="#how">Как это работает</a>
+      <a href="#teachers">Учителям</a>
+      {% if user.is_authenticated %}
+        <a href="/logout/" class="btn-gold" style="text-align:center;">Выйти</a>
+      {% else %}
+        <a href="#" class="btn-gold" id="btnRegisterMobile" style="text-align:center;">Зарегистрироваться</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="grid-overlay"></div>
+    </div>
+    <div class="hero-inner">
+      <div class="hero-label reveal">✦ Учебная платформа для преподавателей и студентов</div>
+      <h1 class="hero-title reveal">
+        Знания,<br />
+        <em>которые меняют</em><br />
+        всё
+      </h1>
+      <p class="hero-sub reveal">
+        Платформа соединяет преподавателей со студентами.<br />
+        Любой учитель может создать курс, любой студент — пройти его.
+      </p>
+      <div class="hero-cta reveal">
+        <a href="{% url 'courses_catalog' %}" class="btn-gold btn-lg">Выбрать курс</a>
+        <a href="#how" class="btn-outline btn-lg">Как это работает</a>
+      </div>
+    </div>
+    <div class="hero-visual reveal">
+      <div class="floating-card card-1">
+        <div class="fc-icon">🎨</div>
+        <div class="fc-text">
+          <strong>UI/UX Дизайн</strong>
+          <span>4.9 ★ · 2 340 студентов</span>
+        </div>
+      </div>
+      <div class="floating-card card-2">
+        <div class="fc-icon">💻</div>
+        <div class="fc-text">
+          <strong>Веб-разработка</strong>
+          <span>4.8 ★ · 5 120 студентов</span>
+        </div>
+      </div>
+      <div class="floating-card card-3">
+        <div class="fc-icon">📊</div>
+        <div class="fc-text">
+          <strong>Анализ данных</strong>
+          <span>4.9 ★ · 3 780 студентов</span>
+        </div>
+      </div>
+      <div class="hero-mockup">
+        <div class="mockup-bar">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="mockup-content">
+          <div class="mockup-video">
+            <div class="play-btn">▶</div>
+            <span>Урок 5: Компонентный подход</span>
+          </div>
+          <div class="mockup-progress">
+            <div class="mp-label">
+              <span>Прогресс курса</span>
+              <span class="mp-pct">68%</span>
+            </div>
+            <div class="mp-bar"><div class="mp-fill" id="mockupBar"></div></div>
+          </div>
+          <div class="mockup-lessons">
+            <div class="ml-item done">✓ Введение в курс</div>
+            <div class="ml-item done">✓ Обучение теории</div>
+            <div class="ml-item active">▶ Практика на задачах</div>
+            <div class="ml-item">○ Завершение курса</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-label reveal">Возможности</div>
+      <h2 class="section-title reveal">Всё, что нужно<br /><em>для обучения</em></h2>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="fc-num">01</div>
+          <div class="fc-icon-big">🎬</div>
+          <h3>Видеоматериалы</h3>
+          <p>К каждому уроку прикрепляется ссылка на видео с YouTube или RUTUBE — смотри прямо на платформе.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="fc-num">02</div>
+          <div class="fc-icon-big">📄</div>
+          <h3>Текстовые уроки</h3>
+          <p>Каждый урок содержит структурированный текстовый материал — читай, изучай и возвращайся в любой момент.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="fc-num">03</div>
+          <div class="fc-icon-big">📎</div>
+          <h3>Доп. материалы</h3>
+          <p>Преподаватели прикрепляют к урокам PDF-файлы, полезные ссылки и дополнительные файлы для углублённого изучения.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="fc-num">04</div>
+          <div class="fc-icon-big">📊</div>
+          <h3>Прогресс обучения</h3>
+          <p>Отмечай уроки как пройденные и следи за своим прогрессом в процентах — всегда знай, сколько осталось.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="fc-num">05</div>
+          <div class="fc-icon-big">⭐</div>
+          <h3>Отзывы и рейтинги</h3>
+          <p>После завершения курса оставь честный отзыв с оценкой и помоги другим студентам сделать правильный выбор.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="fc-num">06</div>
+          <div class="fc-icon-big">🔍</div>
+          <h3>Каталог с фильтрами</h3>
+          <p>Ищи курсы по названию, фильтруй по категории, подходящему уровню. Выбирай идеальный курс под свои требования</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COURSES -->
+  <section class="courses" id="courses">
+    <div class="container">
+      <div class="section-label reveal">Популярные курсы</div>
+      <div class="courses-header reveal">
+        <h2 class="section-title">Начни с <em>лучшего</em></h2>
+
+        <!-- Фильтр по категории -->
+        <div class="course-filters">
+          <div class="course-tabs" id="tabsCategory">
+            <button class="tab active" data-tab="all">Все</button>
+            <button class="tab" data-tab="dev">💻 Разработка</button>
+            <button class="tab" data-tab="design">🎨 Дизайн</button>
+            <button class="tab" data-tab="data">📊 Аналитика</button>
+          </div>
+
+          <!-- Фильтр по уровню -->
+          <div class="course-tabs course-tabs--level" id="tabsLevel">
+            <button class="tab active" data-level="all">Все уровни</button>
+            <button class="tab" data-level="beginner">🟢 Начинающий</button>
+            <button class="tab" data-level="intermediate">🟡 Средний</button>
+            <button class="tab" data-level="advanced">🔴 Продвинутый</button>
+          </div>
+        </div>
+      </div>
+
+      {% if featured_courses %}
+        <div class="cat-grid" id="coursesGrid">
+          {% for course in featured_courses %}
+            <div class="cat-card reveal"
+                 data-category="{{ course.category }}"
+                 data-level="{{ course.level }}"
+                 data-students="{{ course.enrollments_count }}">
+
+              <div class="cat-card-thumb">
+                {% if course.thumbnail %}
+                  <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" />
+                {% else %}
+                  <div class="cat-thumb-placeholder">
+                    {% if course.category == 'dev' %}💻
+                    {% elif course.category == 'design' %}🎨
+                    {% elif course.category == 'data' %}📊
+                    {% else %}📚{% endif %}
+                  </div>
+                {% endif %}
+
+                <!-- Бейджи: категория + хит (левый верх) -->
+                <div class="cat-card-badges">
+                  <span class="cat-badge cat-badge--category">{{ course.get_category_display }}</span>
+                  {% if course.enrollments_count > 50 %}
+                    <span class="cat-badge cat-badge--hot">🔥 Хит</span>
+                  {% endif %}
+                </div>
+
+                <!-- Рейтинг (правый верх) -->
+                {% if course.avg_rating %}
+                  <div class="cat-card-rating">
+                    <span class="cat-rating-star">★</span>
+                    <span class="cat-rating-value">{{ course.avg_rating|floatformat:1 }}</span>
+                    {% if course.reviews_count %}
+                      <span class="cat-rating-count">({{ course.reviews_count }})</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+
+                <!-- Уровень (правый низ) -->
+                <div class="cat-card-level cat-level--{{ course.level }}">
+                  {% if course.level == 'beginner' %}● Начинающий
+                  {% elif course.level == 'intermediate' %}● Средний
+                  {% else %}● Продвинутый{% endif %}
+                </div>
+              </div>
+
+              <div class="cat-card-body">
+                <h3 class="cat-card-title">{{ course.title }}</h3>
+                <p class="cat-card-desc">{{ course.description|truncatechars:110 }}</p>
+                <div class="cat-card-meta">
+                  <div class="cat-meta-item">
+                    <span class="cat-meta-icon">📖</span>
+                    <span>{{ course.lessons.count }} урок{{ course.lessons.count|pluralize:",,ов" }}</span>
+                  </div>
+                  <div class="cat-meta-item">
+                    <span class="cat-meta-icon">👥</span>
+                    <span>{{ course.enrollments_count }} студент{{ course.enrollments_count|pluralize:",,ов" }}</span>
+                  </div>
+                </div>
+                <div class="cat-card-teacher">
+                  <div class="cat-teacher-avatar" style="background: var(--gold);">
+                    {{ course.teacher.first_name|first }}
+                  </div>
+                  <div class="cat-teacher-info">
+                    <span class="cat-teacher-name">{{ course.teacher.first_name }} {{ course.teacher.last_name }}</span>
+                    <span class="cat-teacher-role">Преподаватель</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cat-card-footer">
+                {% if user.is_authenticated and user.is_student %}
+                  {% if course.pk in enrolled_ids %}
+                    <a href="{% url 'student_dashboard' %}" class="cat-btn cat-btn--enrolled">✓ Вы записаны</a>
+                  {% else %}
+                    <a href="{% url 'course_detail' course.pk %}" class="cat-btn cat-btn--primary">Подробнее →</a>
+                  {% endif %}
+                {% else %}
+                  <a href="{% url 'course_detail' course.pk %}" class="cat-btn cat-btn--primary">Подробнее →</a>
+                {% endif %}
+                <a href="{% url 'course_detail' course.pk %}" class="cat-btn cat-btn--ghost">Смотреть</a>
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+
+      {% else %}
+        <div class="cat-empty reveal" style="padding: 60px 0;">
+          <div class="cat-empty-icon">📚</div>
+          <h2>Курсы скоро появятся</h2>
+          <p>Следи за обновлениями — преподаватели уже готовят материалы</p>
+        </div>
+      {% endif %}
+
+      <div class="courses-more reveal">
+        <a href="{% url 'courses_catalog' %}" class="btn-outline">Все курсы →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="container">
+      <div class="section-label reveal">Как это работает</div>
+      <h2 class="section-title reveal">Три шага до <em>результата</em></h2>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">01</div>
+          <div class="step-line"></div>
+          <div class="step-icon">🔍</div>
+          <h3>Запишись на курс</h3>
+          <p>Открой каталог, найди нужное направление, ознакомься с программой курса и нажми «Записаться».</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">02</div>
+          <div class="step-line"></div>
+          <div class="step-icon">📚</div>
+          <h3>Проходи уроки</h3>
+          <p>Изучай видеоматериалы и тексты, скачивай приложенные файлы и отмечай каждый урок как пройденный.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">03</div>
+          <div class="step-line"></div>
+          <div class="step-icon">🏆</div>
+          <h3>Заверши и оцени</h3>
+          <p>После последнего урока курс автоматически завершается — оставь отзыв с оценкой и помоги другим студентам.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEACHERS CTA -->
+  <section class="teachers" id="teachers">
+    <div class="container">
+      <div class="teachers-inner reveal">
+        <div class="teachers-text">
+          <div class="section-label">Для преподавателей</div>
+          <h2 class="section-title">Делись<br /><em>знаниями</em></h2>
+          <p>Создай свой курс и помогай тысячам студентам получать знания. Мы берём на себя техническую часть — вам остаётся только давать знания.</p>
+          <ul class="teachers-list">
+            <li>✦ Простой редактор курсов</li>
+            <li>✦ Аналитика и статистика</li>
+            <li>✦ Обратная связь от студентов</li>
+          </ul>
+          <a href="#" class="btn-gold btn-lg" data-open-modal="register" data-role="teacher">Стать преподавателем</a>
+        </div>
+        <div class="teachers-visual">
+          <div class="tv-card">
+            <div class="tv-header">Мои курсы</div>
+            <div class="tv-course">
+              <div class="tvc-icon">🐍</div>
+              <div class="tvc-info">
+                <strong>Python Pro</strong>
+                <span>2 340 студентов</span>
+              </div>
+              <div class="tvc-stat">+120 студентов</div>
+            </div>
+            <div class="tv-course">
+              <div class="tvc-icon">⚙️</div>
+              <div class="tvc-info">
+                <strong>Программная инженерия</strong>
+                <span>1 120 студентов</span>
+              </div>
+              <div class="tvc-stat">+53 студента</div>
+            </div>
+            <div class="tv-course">
+              <div class="tvc-icon">✨</div>
+              <div class="tvc-info">
+                <strong>UI/UX дизайн</strong>
+                <span>537 студента</span>
+              </div>
+              <div class="tvc-stat">+37 студентов</div>
+            </div>
+            <div class="tv-total">
+              <span>Итого этот месяц</span>
+              <strong>210 студентов</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-label reveal">Отзывы</div>
+      <h2 class="section-title reveal">Что говорят <em>студенты</em></h2>
+      <div class="testi-grid">
+        <div class="testi-card reveal">
+          <div class="testi-quote">"</div>
+          <p>Прошла курс по UX-дизайну и осталась довольной результатом. Качество уроков просто на высоте — всё структурировано и понятно.</p>
+          <div class="testi-author">
+            <div class="ta-avatar" style="background:#8b5cf6;">Ю</div>
+            <div>
+              <strong>Юлия Л.</strong>
+              <span>UI/UX Дизайн для специалистов</span>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card reveal">
+          <div class="testi-quote">"</div>
+          <p>Изучил Python за месяц в свободном темпе. Нашёл хороший курс, занимался по часу в день. Уже делаю pet-проекты для портфолио.</p>
+          <div class="testi-author">
+            <div class="ta-avatar" style="background:#0ea5e9;">И</div>
+            <div>
+              <strong>Илья В.</strong>
+              <span>Python с нуля</span>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card reveal">
+          <div class="testi-quote">"</div>
+          <p>Лучшая платформа для обучения. Erudito привлекает своей открытостью. Зашёл, выбрал курс, начал обучаться в своём темпе, через месяц уже вижу результат</p>
+          <div class="testi-author">
+            <div class="ta-avatar" style="background:#c9a84c;">Д</div>
+            <div>
+              <strong>Денис А.</strong>
+              <span>Основы Java</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <div class="cta-bg">
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="container">
+      <div class="final-inner reveal">
+        <h2>Начни учиться<br /><em>прямо сегодня</em></h2>
+        <p>Бесплатная регистрация. Множество курсов. Никаких ограничений.</p>
+        <a href="#" class="btn-gold btn-lg" data-open-modal="register">Зарегистрироваться бесплатно</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="logo"><span class="logo-e">E</span>rudito</a>
+          <p>Учебная платформа для преподавателей и студентов. Erudito соединяет преподавателей со студентами. Любой учитель может создать курс, любой студент — пройти его.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Навигация</h4>
+          <a href="/">Главная</a>
+          <a href="{% url 'courses_catalog' %}">Каталог курсов</a>
+          <a href="#features">Возможности</a>
+          <a href="#how">Как это работает</a>
+        </div>
+        <div class="footer-col">
+          <h4>Категории</h4>
+          <a href="{% url 'courses_catalog' %}?category=dev">💻 Разработка</a>
+          <a href="{% url 'courses_catalog' %}?category=design">🎨 Дизайн</a>
+          <a href="{% url 'courses_catalog' %}?category=data">📊 Аналитика</a>
+        </div>
+        <div class="footer-col">
+          <h4>Кабинеты</h4>
+          {% if user.is_authenticated %}
+            {% if user.is_student %}
+              <a href="{% url 'student_dashboard' %}">🎓 Личный кабинет</a>
+            {% elif user.is_teacher %}
+              <a href="{% url 'teacher_courses' %}">📚 Кабинет преподавателя</a>
+            {% endif %}
+          {% else %}
+            <a href="#" data-open-modal="register">🎓 Личный кабинет</a>
+            <a href="#" data-open-modal="register">📚 Кабинет преподавателя</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Erudito. Все права защищены.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL: ВХОД -->
+  <div class="modal-overlay" id="modalLogin" role="dialog" aria-modal="true" aria-label="Вход">
+    <div class="modal-box" id="modalLoginBox">
+      <button class="modal-close" id="closeLogin" aria-label="Закрыть">✕</button>
+      <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+      <h2 class="modal-title">С возвращением</h2>
+      <p class="modal-sub">Войди в свой аккаунт и продолжай учиться</p>
+      <form class="modal-form" id="loginForm" action="/login/" method="post" novalidate>
+        {% csrf_token %}
+        <div class="mf-group">
+          <label class="mf-label" for="loginEmail">Электронная почта</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">✉</span>
+            <input class="mf-input" id="loginEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label" for="loginPassword">Пароль</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">🔒</span>
+            <input class="mf-input" id="loginPassword" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="mf-toggle-pw" data-target="loginPassword" aria-label="Показать пароль">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-gold btn-modal-submit">Войти</button>
+      </form>
+      <p class="modal-switch">Нет аккаунта? <button class="modal-link" id="switchToRegister">Зарегистрироваться</button></p>
+      <div class="modal-orb modal-orb-1"></div>
+      <div class="modal-orb modal-orb-2"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: РЕГИСТРАЦИЯ -->
+  <div class="modal-overlay" id="modalRegister" role="dialog" aria-modal="true" aria-label="Регистрация">
+    <div class="modal-box modal-box--wide" id="modalRegisterBox">
+      <button class="modal-close" id="closeRegister" aria-label="Закрыть">✕</button>
+      <div class="modal-brand"><span class="logo-e">E</span>rudito</div>
+      <h2 class="modal-title">Создай аккаунт</h2>
+      <p class="modal-sub">Присоединяйся к нашей команде и начни получать лучшие знания</p>
+
+      <div class="role-toggle" id="roleToggle">
+        <button type="button" class="role-btn active" data-role="student">
+          <span class="role-icon">🎓</span> Студент
+        </button>
+        <button type="button" class="role-btn" data-role="teacher">
+          <span class="role-icon">📚</span> Преподаватель
+        </button>
+        <div class="role-slider"></div>
+      </div>
+
+      <form class="modal-form" id="registerForm" action="/register/" method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="role" id="roleInput" value="student" />
+        <div class="mf-row">
+          <div class="mf-group">
+            <label class="mf-label" for="regFirstName">Имя</label>
+            <div class="mf-input-wrap">
+              <span class="mf-icon">👤</span>
+              <input class="mf-input" id="regFirstName" name="first_name" type="text" placeholder="Илья" autocomplete="given-name" required />
+            </div>
+          </div>
+          <div class="mf-group">
+            <label class="mf-label" for="regLastName">Фамилия</label>
+            <div class="mf-input-wrap">
+              <span class="mf-icon">👤</span>
+              <input class="mf-input" id="regLastName" name="last_name" type="text" placeholder="Рябоконь" autocomplete="family-name" required />
+            </div>
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label" for="regEmail">Электронная почта</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">✉</span>
+            <input class="mf-input" id="regEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label" for="regPassword">Пароль</label>
+          <div class="mf-input-wrap">
+            <span class="mf-icon">🔒</span>
+            <input class="mf-input" id="regPassword" name="password" type="password" placeholder="Минимум 8 символов" autocomplete="new-password" required />
+            <button type="button" class="mf-toggle-pw" data-target="regPassword" aria-label="Показать пароль">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-gold btn-modal-submit">Зарегистрироваться</button>
+      </form>
+      <p class="modal-switch">Уже есть аккаунт? <button class="modal-link" id="switchToLogin">Войти</button></p>
+      <div class="modal-orb modal-orb-1"></div>
+      <div class="modal-orb modal-orb-2"></div>
+    </div>
+  </div>
+
+  <script src="{% static 'main/js/main_page.js' %}"></script>
+</body>
+</html>
